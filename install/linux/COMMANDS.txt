@@ -1,0 +1,39 @@
+# Taxes Sender — команды (Linux)
+
+## Установка и удаление
+
+  Установить (включить автозапуск при старте системы):
+    sudo bash "/путь/к/taxes-sender prod/install/linux/install.sh"
+
+  Удалить только автозагрузку (сервис и файлы останутся, перестанет запускаться сам):
+    sudo bash "/путь/к/taxes-sender prod/install/linux/install.sh" uninstall
+    При удалении скрипт спросит: удалить ли папку node_modules (освободить место). Код и данные не трогаются.
+
+  Варианты аргумента для удаления: uninstall | remove | --uninstall | --remove
+
+  node_modules — зависимости приложения; без них запуск невозможен. Если удалили: снова выполните npm install в папке проекта.
+
+## Запуск и остановка
+
+  Запустить вручную (из папки проекта):
+    node server/index.js
+
+  Запуск в фоне с логами:
+    nohup node server/index.js >> data/server.log 2>&1 &
+
+  Остановить процесс:
+    pkill -f "server/index.js"
+
+  Если установлен systemd-сервис:
+    sudo systemctl start taxes-sender   # запустить
+    sudo systemctl stop taxes-sender    # остановить
+    sudo systemctl restart taxes-sender # перезапустить
+    sudo systemctl status taxes-sender # статус
+
+## Логи
+
+  Смотреть логи в реальном времени:
+    tail -f "/путь/к/taxes-sender prod/data/server.log"
+
+  Логи systemd (если запущен как сервис):
+    journalctl -u taxes-sender -f

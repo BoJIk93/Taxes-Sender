@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset="UTF-8">
+<title>Taxes Sender &#8212; &#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1097;&#1080;&#1082;</title>
+<HTA:APPLICATION
+    ID="TaxesInstaller"
+    APPLICATIONNAME="Taxes Sender &#8212; &#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1097;&#1080;&#1082;"
+    SCROLL="no"
+    SINGLEINSTANCE="yes"
+    WINDOWSTATE="maximize"
+    BORDER="none"
+    BORDERSTYLE="none"
+    INNERBORDER="no"
+    CAPTION="no"
+    SYSMENU="no"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="no"
+    SHOWINTASKBAR="yes"
+    SELECTION="no"
+    CONTEXTMENU="no"
+/>
+<style>
+html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #181830;
+    color: #f0f0ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ── Layout via position:absolute ── */
+#sidebar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: #1e1e3c;
+    border-right: 1px solid #30305a;
+    overflow: hidden;
+}
+#content-wrap {
+    position: absolute;
+    left: 261px; top: 0; right: 0; bottom: 56px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+#bottom-bar {
+    position: absolute;
+    left: 261px; right: 0; bottom: 0; height: 56px;
+    background: #181830;
+    border-top: 1px solid #2a2a50;
+    padding: 10px 40px;
+}
+
+/* ── Sidebar logo ── */
+#logo {
+    padding: 28px 20px 22px;
+    border-bottom: 1px solid #30305a;
+    text-align: center;
+}
+#logo .logo-icon { font-size: 42px; display: block; margin-bottom: 10px; }
+#logo .logo-name { font-size: 18px; font-weight: 700; color: #ffffff; }
+#logo .logo-ver  { font-size: 13px; color: #7878b0; margin-top: 4px; }
+
+/* ── Step items ── */
+.step-item {
+    padding: 11px 18px;
+    cursor: default;
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+.step-num {
+    display: table-cell;
+    vertical-align: middle;
+    width: 30px; height: 30px;
+    text-align: center;
+}
+.step-num-inner {
+    display: inline-block;
+    width: 30px; height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid #38387a;
+    font-size: 13px; font-weight: 700;
+    color: #6868b0;
+    text-align: center;
+    background: transparent;
+}
+.step-item.active .step-num-inner {
+    border-color: #3a5af0;
+    background: #3a5af0;
+    color: #ffffff;
+}
+.step-item.done .step-num-inner {
+    border-color: #27ae60;
+    background: #27ae60;
+    color: #ffffff;
+}
+.step-label-cell {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 12px;
+    font-size: 15px;
+    color: #6868b0;
+}
+.step-item.active .step-label-cell { color: #ffffff; font-weight: 600; }
+.step-item.done   .step-label-cell { color: #50c878; }
+
+/* ── Pages ── */
+.page { display: none; padding: 40px 60px 20px; max-width: 760px; margin: 0 auto; }
+.page.active { display: block; }
+
+.page-title { font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 7px; }
+.page-sub   { font-size: 15px; color: #8080c0; line-height: 1.5; margin-bottom: 20px; }
+
+/* ── Welcome ── */
+#welcome-inner { text-align: center; padding: 2px 20px; max-width: 100%; box-sizing: border-box; }
+#welcome-inner .w-icon  { font-size: 48px; display: block; margin-bottom: 10px; }
+#welcome-inner .w-title { font-size: 28px; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+#welcome-inner .w-desc  {
+    font-size: 16px; color: #8080c0;
+    line-height: 1.6; max-width: 460px;
+    margin: 0 auto 16px;
+}
+.feat-table { margin: 0 auto; }
+.feat-table td.feat-check { color: #40d080; font-size: 15px; padding-right: 8px; padding-bottom: 6px; }
+.feat-table td.feat-text  { color: #9090cc; font-size: 15px; padding-bottom: 6px; }
+
+/* ── Radio cards ── */
+.card-group { margin-bottom: 10px; }
+.radio-card {
+    border: 1.5px solid #30305a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+.radio-card:hover    { border-color: #5878f8; background: #20204a; }
+.radio-card.selected { border-color: #5878f8; background: #1e1e48; }
+
+.rdot-cell { display: table-cell; vertical-align: top; width: 24px; padding-top: 2px; }
+.rdot {
+    display: inline-block;
+    width: 17px; height: 17px; border-radius: 50%;
+    border: 2px solid #40406a;
+}
+.radio-card.selected .rdot {
+    border-color: #5878f8;
+    background: radial-gradient(circle at center, #5878f8 45%, transparent 46%);
+}
+.rc-body { display: table-cell; vertical-align: top; padding-left: 10px; }
+.rc-title { font-size: 16px; font-weight: 600; color: #e8e8ff; margin-bottom: 4px; }
+.rc-desc  { font-size: 13px; color: #7878b0; line-height: 1.5; }
+
+/* ── Checkbox card ── */
+.check-card {
+    border: 1.5px solid #30305a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+.check-card:hover   { border-color: #5878f8; background: #20204a; }
+.check-card.checked { border-color: #5878f8; background: #1e1e48; }
+
+.cbox-cell { display: table-cell; vertical-align: top; width: 24px; padding-top: 2px; }
+.cbox {
+    display: inline-block;
+    width: 20px; height: 20px; border-radius: 3px;
+    border: 2px solid #40406a;
+    text-align: center; line-height: 17px;
+    font-size: 13px; font-weight: 700; color: transparent;
+}
+.check-card.checked .cbox { background: #5878f8; border-color: #5878f8; color: #fff; }
+
+/* ── Indent block ── */
+.indent-block {
+    margin-left: 28px;
+    padding-left: 12px;
+    border-left: 2px solid #30305a;
+    margin-top: 6px;
+    display: none;
+}
+.indent-block.show { display: block; }
+
+/* ── Status boxes ── */
+.sbox {
+    border-radius: 7px; padding: 12px 16px;
+    margin-bottom: 12px; font-size: 14px; line-height: 1.6;
+}
+.sbox-ok   { background: #123a22; border: 1px solid #256038; color: #40e080; }
+.sbox-err  { background: #3a1212; border: 1px solid #602525; color: #ff6060; }
+.sbox-info { background: #141860; border: 1px solid #282e90; color: #90b8ff; }
+.sbox-warn { background: #3a2508; border: 1px solid #604018; color: #ffaa44; }
+
+/* ── Field input ── */
+.field-label { font-size: 13px; color: #9090cc; margin-bottom: 6px; margin-top: 14px; display: block; }
+.field-input {
+    width: 100%; background: #1e1e40; border: 1.5px solid #30305a;
+    border-radius: 6px; padding: 10px 14px; color: #f0f0ff;
+    font-size: 15px; font-family: 'Segoe UI', sans-serif; outline: none;
+    box-sizing: border-box;
+}
+
+/* ── Progress ── */
+.prog-label { font-size: 14px; color: #9090c8; margin-bottom: 8px; }
+.prog-bar   { height: 6px; background: #2a2a50; border-radius: 3px; overflow: hidden; margin-bottom: 0; }
+.prog-fill  { height: 6px; background: #5878f8; border-radius: 3px; width: 0%; }
+/* Загрузка без процентов (анимация) */
+@keyframes nodeLoadSlide {
+    0%   { margin-left: -45%; }
+    100% { margin-left: 100%; }
+}
+.prog-bar-loading { height: 6px; background: #2a2a50; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.prog-fill-loading { width: 45%; height: 6px; background: #5878f8; border-radius: 3px; animation: nodeLoadSlide 1.4s ease-in-out infinite; }
+
+/* ── Log ── */
+.log-box {
+    background: #111128; border-radius: 6px; padding: 12px 14px;
+    margin-top: 14px; font-size: 13px; color: #7878b0;
+    font-family: Consolas, 'Courier New', monospace;
+    height: 180px; overflow-y: auto; line-height: 1.8;
+    border: 1px solid #28285a;
+}
+.l-ok   { color: #40e080; }
+.l-err  { color: #ff6060; }
+.l-step { color: #80a0ff; }
+
+/* ── Success ── */
+#success-inner { text-align: center; padding: 10px 30px; }
+#success-inner .s-icon  { font-size: 64px; display: block; margin-bottom: 14px; }
+#success-inner .s-title { font-size: 28px; font-weight: 700; color: #2ecc71; margin-bottom: 10px; }
+#success-inner .s-desc  { font-size: 15px; color: #8080c0; line-height: 1.6; margin-bottom: 14px; }
+#success-inner .s-url   {
+    display: inline-block; padding: 9px 20px; margin-bottom: 20px;
+    background: #181860; border: 1px solid #3030a0;
+    border-radius: 6px; color: #90b8ff; font-size: 16px; font-weight: 600;
+}
+.btn-launch {
+    display: inline-block; padding: 13px 32px;
+    background: #5878f8; color: #fff; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 700; font-family: 'Segoe UI', sans-serif;
+    cursor: pointer;
+}
+.btn-launch:hover { background: #4060e0; }
+.btn-launch:disabled { background: #2a2a5a; color: #6060a0; cursor: default; }
+
+/* ── Uninstall status table ── */
+.ui-row {
+    display: table; width: 100%;
+    border-bottom: 1px solid #161630;
+    padding: 4px 0;
+}
+.ui-row:last-child { border-bottom: none; }
+.ui-badge-cell { display: table-cell; vertical-align: middle; width: 80px; }
+.ui-label-cell { display: table-cell; vertical-align: middle; font-size: 15px; color: #9090cc; padding-left: 10px; }
+.ui-badge {
+    display: inline-block; font-size: 14px; font-weight: 700;
+    padding: 3px 10px; border-radius: 4px; text-align: center;
+}
+.ui-found   { background: #123a22; color: #40e080; border: 1px solid #256038; }
+.ui-missing { background: #222240; color: #7070b0; border: 1px solid #30305a; }
+
+/* ── Bottom bar buttons ── */
+.bottom-inner {
+    display: table; width: 100%;
+}
+.bb-left, .bb-right { display: table-cell; vertical-align: middle; }
+.bb-right { text-align: right; }
+
+.btn {
+    padding: 9px 22px; border-radius: 6px; border: none;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    font-family: 'Segoe UI', sans-serif;
+}
+.btn-primary { background: #5878f8; color: #fff; }
+.btn-primary:hover { background: #4060e0; }
+.btn-ghost   { background: transparent; color: #7878b8; border: 1.5px solid #30305a; }
+.btn-ghost:hover { background: #22224a; color: #c0c0f0; }
+</style>
+</head>
+<body onload="init()">
+
+<!-- Sidebar -->
+<div id="sidebar">
+    <div id="logo">
+        <span class="logo-icon">&#129534;</span>
+        <div class="logo-name">Taxes Sender</div>
+        <div class="logo-ver">&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1097;&#1080;&#1082; v1.0</div>
+    </div>
+    <div id="steps-list" style="padding: 8px 0;">
+        <div class="step-item active" id="si0">
+            <div class="step-num"><span class="step-num-inner" id="sn0">1</span></div>
+            <div class="step-label-cell">&#1044;&#1086;&#1073;&#1088;&#1086; &#1087;&#1086;&#1078;&#1072;&#1083;&#1086;&#1074;&#1072;&#1090;&#1100;</div>
+        </div>
+        <div class="step-item" id="si1">
+            <div class="step-num"><span class="step-num-inner" id="sn1">2</span></div>
+            <div class="step-label-cell">Node.js</div>
+        </div>
+        <div class="step-item" id="si2">
+            <div class="step-num"><span class="step-num-inner" id="sn2">3</span></div>
+            <div class="step-label-cell">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072;</div>
+        </div>
+        <div class="step-item" id="si3">
+            <div class="step-num"><span class="step-num-inner" id="sn3">4</span></div>
+            <div class="step-label-cell">&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072;</div>
+        </div>
+        <div class="step-item" id="si4">
+            <div class="step-num"><span class="step-num-inner" id="sn4">5</span></div>
+            <div class="step-label-cell">&#1043;&#1086;&#1090;&#1086;&#1074;&#1086;</div>
+        </div>
+    </div>
+</div>
+
+<!-- Content -->
+<div id="content-wrap">
+
+    <!-- Page 0: Welcome -->
+    <div class="page active" id="p0">
+        <div id="welcome-inner">
+            <span class="w-icon">&#129534;</span>
+            <div class="w-title">Taxes Sender</div>
+            <div class="w-desc">&#1055;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077; &#1076;&#1083;&#1103; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1082;&#1080; &#1095;&#1077;&#1082;&#1086;&#1074; &#1089;&#1072;&#1084;&#1086;&#1079;&#1072;&#1085;&#1103;&#1090;&#1086;&#1075;&#1086; &#1074; &#1085;&#1072;&#1083;&#1086;&#1075;&#1086;&#1074;&#1091;&#1102; &#1095;&#1077;&#1088;&#1077;&#1079; &#171;&#1052;&#1086;&#1081; &#1053;&#1072;&#1083;&#1086;&#1075;&#187;</div>
+            <table class="feat-table" cellpadding="0" cellspacing="0">
+                <tr><td class="feat-check">&#10003;</td><td class="feat-text">&#1056;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090; &#1083;&#1086;&#1082;&#1072;&#1083;&#1100;&#1085;&#1086; &#8212; &#1073;&#1077;&#1079; &#1086;&#1073;&#1083;&#1072;&#1082;&#1072; &#1080; &#1074;&#1085;&#1077;&#1096;&#1085;&#1080;&#1093; &#1089;&#1077;&#1088;&#1074;&#1077;&#1088;&#1086;&#1074;</td></tr>
+                <tr><td class="feat-check">&#10003;</td><td class="feat-text">&#1064;&#1080;&#1092;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1074;&#1089;&#1077;&#1093; &#1082;&#1083;&#1102;&#1095;&#1077;&#1081; &#1080; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1077;&#1082;</td></tr>
+                <tr><td class="feat-check">&#10003;</td><td class="feat-text">&#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077; &#1095;&#1077;&#1088;&#1077;&#1079; &#1073;&#1088;&#1072;&#1091;&#1079;&#1077;&#1088;</td></tr>
+                <tr><td class="feat-check">&#10003;</td><td class="feat-text">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1087;&#1088;&#1080; &#1074;&#1093;&#1086;&#1076;&#1077; &#1074; Windows</td></tr>
+            </table>
+        </div>
+
+        <!-- Detected existing install -->
+        <div id="existingSection" style="display:none; margin:12px 0 0; border-top:1px solid #1a1a35; padding-top:12px;">
+            <div class="sbox sbox-warn" style="margin-bottom:8px; padding:10px 14px; font-size:14px;">
+                &#9888; &#1054;&#1073;&#1085;&#1072;&#1088;&#1091;&#1078;&#1077;&#1085;&#1072; &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1085;&#1072;&#1103; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072;. &#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1077; &#1080;&#1083;&#1080; &#1085;&#1072;&#1078;&#1084;&#1080;&#1090;&#1077; &#171;&#1044;&#1072;&#1083;&#1077;&#1077;&#187; &#1076;&#1083;&#1103; &#1087;&#1077;&#1088;&#1077;&#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1080;.
+            </div>
+            <div style="background:#07071a; border:1px solid #161630; border-radius:6px; padding:3px 10px; margin-bottom:7px;">
+                <div id="existingRows"></div>
+            </div>
+            <div style="text-align:center;">
+                <button class="btn" id="btnWelcomeRemove" onclick="doRemoveOnWelcome()"
+                    style="background:#7a2020; color:#fff; padding:9px 22px; font-size:14px;">
+                    &#10007; &#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1091;
+                </button>
+            </div>
+        </div>
+        <div id="existingDone" style="display:none; margin:10px 0 0;"></div>
+    </div>
+
+    <!-- Page 1: Node.js -->
+    <div class="page" id="p1">
+        <div class="page-title">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072; Node.js</div>
+        <div class="page-sub">Node.js &#1085;&#1077;&#1086;&#1073;&#1093;&#1086;&#1076;&#1080;&#1084; &#1076;&#1083;&#1103; &#1088;&#1072;&#1073;&#1086;&#1090;&#1099; &#1089;&#1077;&#1088;&#1074;&#1077;&#1088;&#1072;</div>
+        <div id="nodeStatus"><div class="sbox sbox-info">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1103;&#1102;&#1089;&#1100;...</div></div>
+    </div>
+
+    <!-- Page 2: Autostart -->
+    <div class="page" id="p2">
+        <div class="page-title">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072;</div>
+        <div class="page-sub">&#1047;&#1072;&#1087;&#1091;&#1089;&#1082;&#1072;&#1090;&#1100; Taxes Sender &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080; &#1087;&#1088;&#1080; &#1074;&#1093;&#1086;&#1076;&#1077; &#1074; Windows?</div>
+        <div class="check-card checked" id="autostartCard" onclick="toggleAutostart()">
+            <div class="cbox-cell"><div class="cbox" id="autostartCbox">&#10003;</div></div>
+            <div class="rc-body">
+                <div class="rc-title">&#1047;&#1072;&#1087;&#1091;&#1089;&#1082;&#1072;&#1090;&#1100; &#1087;&#1088;&#1080; &#1074;&#1093;&#1086;&#1076;&#1077; &#1074; Windows</div>
+                <div class="rc-desc">&#1057;&#1077;&#1088;&#1074;&#1077;&#1088; &#1089;&#1090;&#1072;&#1088;&#1090;&#1091;&#1077;&#1090; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080; &#8212; &#1073;&#1077;&#1079; &#1074;&#1072;&#1096;&#1077;&#1075;&#1086; &#1091;&#1095;&#1072;&#1089;&#1090;&#1080;&#1103;</div>
+            </div>
+        </div>
+        <div class="indent-block show" id="autostartOpts">
+            <div class="card-group">
+                <div class="radio-card selected" id="rc_service" onclick="setAutostart('service')">
+                    <div class="rdot-cell"><div class="rdot"></div></div>
+                    <div class="rc-body">
+                        <div class="rc-title">&#128736; &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; Windows (&#1088;&#1077;&#1082;&#1086;&#1084;&#1077;&#1085;&#1076;&#1091;&#1077;&#1090;&#1089;&#1103;)</div>
+                        <div class="rc-desc">&#1047;&#1072;&#1087;&#1091;&#1089;&#1082; &#1082;&#1072;&#1082; &#1089;&#1083;&#1091;&#1078;&#1073;&#1099; &#8212; &#1074; &#1092;&#1086;&#1085;&#1077;, &#1073;&#1077;&#1079; &#1086;&#1082;&#1085;&#1072;, &#1085;&#1072;&#1076;&#1105;&#1078;&#1085;&#1086;</div>
+                    </div>
+                </div>
+                <div class="radio-card" id="rc_folder" onclick="setAutostart('folder')">
+                    <div class="rdot-cell"><div class="rdot"></div></div>
+                    <div class="rc-body">
+                        <div class="rc-title">&#128193; &#1055;&#1072;&#1087;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;</div>
+                        <div class="rc-desc">&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1089;&#1087;&#1086;&#1089;&#1086;&#1073;. &#1055;&#1088;&#1080; &#1074;&#1093;&#1086;&#1076;&#1077; &#1086;&#1090;&#1082;&#1088;&#1086;&#1077;&#1090;&#1089;&#1103; &#1086;&#1082;&#1085;&#1086; &#1089; &#1089;&#1077;&#1088;&#1074;&#1077;&#1088;&#1086;&#1084;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3: Installing -->
+    <div class="page" id="p3">
+        <div class="page-title">&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072;</div>
+        <div class="page-sub" style="margin-bottom:12px;">&#1042;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090;&#1089;&#1103; &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072;, &#1087;&#1086;&#1076;&#1086;&#1078;&#1076;&#1080;&#1090;&#1077;&#8230;</div>
+        <div class="prog-label" id="progLabel">&#1055;&#1086;&#1076;&#1075;&#1086;&#1090;&#1086;&#1074;&#1082;&#1072;&#8230;</div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="log-box" id="logBox"></div>
+    </div>
+
+    <!-- Page 4: Done -->
+    <div class="page" id="p4">
+        <div id="success-inner">
+            <span class="s-icon">&#9989;</span>
+            <div class="s-title">&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072; &#1079;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1072;!</div>
+            <div class="s-desc" id="successDesc">Taxes Sender &#1075;&#1086;&#1090;&#1086;&#1074; &#1082; &#1088;&#1072;&#1073;&#1086;&#1090;&#1077;</div>
+            <div id="successUrls" style="text-align:left; margin:12px 0; padding:14px; background:#0d0d1a; border-radius:8px; border:1px solid #252550; font-size:14px; line-height:1.6;"></div>
+            <button class="btn-launch" id="launchBtn" onclick="launchApp()">&#128640; &#1047;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100; &#1087;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;</button>
+            <br><br>
+            <button class="btn btn-ghost" onclick="window.close()" style="padding:8px 24px;">&#1042;&#1099;&#1093;&#1086;&#1076;</button>
+        </div>
+
+        <!-- Uninstall section -->
+        <div style="margin:18px 24px 0; border-top:1px solid #1a1a35; padding-top:14px;">
+            <div style="text-align:center; margin-bottom:10px;">
+                <button class="btn btn-ghost" onclick="toggleUninstall()" id="btnUninstallToggle" style="font-size:14px; padding:8px 20px;">
+                    &#9881; &#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1086;&#1081;
+                </button>
+            </div>
+            <div id="uninstallPanel" style="display:none;">
+                <div id="uninstallStatus"></div>
+                <div style="text-align:center; margin-top:8px;">
+                    <button class="btn" id="btnDoRemove" onclick="doRemove()"
+                        style="background:#7a2020; color:#fff; padding:9px 22px; font-size:14px; display:none;">
+                        &#10007; &#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1091;
+                    </button>
+                </div>
+                <div id="nodeRemoveBlock" style="margin-top:14px; padding-top:14px; border-top:1px solid #1a1a35; display:none;">
+                    <div id="nodeRemoveStatus"></div>
+                    <div style="text-align:center; margin-top:8px;">
+                        <button class="btn" id="btnDoRemoveNode" onclick="doRemoveNode()"
+                            style="background:#7a2020; color:#fff; padding:9px 22px; font-size:14px;">
+                            &#10007; &#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100; Node.js (&#1087;&#1072;&#1087;&#1082;&#1072; node/)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display:none;"><!-- closing dummy -->
+        </div>
+    </div>
+
+</div><!-- /content-wrap -->
+
+<!-- Bottom bar -->
+<div id="bottom-bar">
+    <div class="bottom-inner">
+        <div class="bb-left">
+            <button class="btn btn-ghost" id="btnBack" onclick="goBack()">&#8592; &#1053;&#1072;&#1079;&#1072;&#1076;</button>
+        </div>
+        <div class="bb-right">
+            <button class="btn btn-ghost"   id="btnCancel" onclick="window.close()" style="margin-right:8px;">&#1054;&#1090;&#1084;&#1077;&#1085;&#1072;</button>
+            <button class="btn btn-primary"  id="btnNext"   onclick="goNext()">&#1044;&#1072;&#1083;&#1077;&#1077; &#8250;</button>
+        </div>
+    </div>
+</div>
+
+<script language="JScript">
+// ============================================================
+// State
+// ============================================================
+var page        = 0;
+var projectDir  = '';
+var nodeFound   = false;
+var nodeVersion = '';
+var localIP     = '127.0.0.1';
+var accessType  = 'local';
+var autoEnabled = true;
+var autoType    = 'service';
+var accessURL   = 'http://127.0.0.1:3847';
+
+var oShell = new ActiveXObject('WScript.Shell');
+var oFSO   = new ActiveXObject('Scripting.FileSystemObject');
+
+// ============================================================
+// Init
+// ============================================================
+function init() {
+    // Окно открывается максимизированным через WINDOWSTATE="maximize"
+
+    // Resolve project dir (из file URL — надёжнее при запуске из установщика)
+    try {
+        var href = window.location.href;
+        var htaPath;
+        if (href.indexOf('file:') === 0) {
+            htaPath = unescape(href.replace(/^file:\/+/i, '').replace(/\//g, '\\'));
+        } else {
+            htaPath = unescape(window.location.pathname).replace(/^\//, '').replace(/\//g, '\\');
+        }
+        projectDir = oFSO.GetParentFolderName(
+                        oFSO.GetParentFolderName(
+                            oFSO.GetParentFolderName(htaPath)));
+        if (projectDir && oFSO.GetAbsolutePathName) {
+            projectDir = oFSO.GetAbsolutePathName(projectDir);
+        }
+        if (!projectDir || !oFSO.FileExists(projectDir + '\\start.bat')) {
+            projectDir = 'C:\\taxes-sender';
+        }
+    } catch(e) {
+        projectDir = 'C:\\taxes-sender';
+    }
+
+    // Admin check
+    if (!isAdmin()) {
+        alert('&#1044;&#1083;&#1103; &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1080; &#1085;&#1077;&#1086;&#1073;&#1093;&#1086;&#1076;&#1080;&#1084;&#1099; &#1087;&#1088;&#1072;&#1074;&#1072; &#1072;&#1076;&#1084;&#1080;&#1085;&#1080;&#1089;&#1090;&#1088;&#1072;&#1090;&#1086;&#1088;&#1072;.\n\n&#1065;&#1077;&#1083;&#1082;&#1085;&#1080;&#1090;&#1077; &#1087;&#1088;&#1072;&#1074;&#1086;&#1081; &#1082;&#1085;&#1086;&#1087;&#1082;&#1086;&#1081; &#1085;&#1072; install.hta\n&#8594; "&#1047;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100; &#1086;&#1090; &#1080;&#1084;&#1077;&#1085;&#1080; &#1072;&#1076;&#1084;&#1080;&#1085;&#1080;&#1089;&#1090;&#1088;&#1072;&#1090;&#1086;&#1088;&#1072;"');
+        window.close();
+        return;
+    }
+
+    // Init default selections
+    setAutostart('service');
+    updateUI();
+
+    // Check for existing install after window renders
+    window.setTimeout(checkExistingInstall, 350);
+}
+
+// ============================================================
+// Navigation
+// ============================================================
+function goNext() {
+    if (page === 4) return;
+    if (page === 1 && !nodeFound) {
+        alert('Node.js &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;.\n&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1077; Node.js &#1087;&#1077;&#1088;&#1077;&#1076; &#1087;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084;.');
+        return;
+    }
+    page++;
+    if (page === 1) { window.setTimeout(checkNode, 80); }
+    if (page === 3) { window.setTimeout(runInstall, 120); }
+    updateUI();
+}
+
+function goBack() {
+    if (page <= 0 || page >= 3) return;
+    page--;
+    updateUI();
+}
+
+// ============================================================
+// UI
+// ============================================================
+function updateUI() {
+    var i;
+    // Pages (0..4)
+    for (i = 0; i <= 4; i++) {
+        var pg = document.getElementById('p' + i);
+        if (pg) pg.className = (i === page) ? 'page active' : 'page';
+    }
+
+    // Steps (0..4)
+    var nums = ['1','2','3','4','5'];
+    for (i = 0; i <= 4; i++) {
+        var si = document.getElementById('si' + i);
+        var sn = document.getElementById('sn' + i);
+        if (!si || !sn) continue;
+        if (page === 4 || i < page) {
+            si.className = 'step-item done';
+            sn.innerHTML = '&#10003;';
+        } else if (i === page) {
+            si.className = 'step-item active';
+            sn.innerHTML = nums[i];
+        } else {
+            si.className = 'step-item';
+            sn.innerHTML = nums[i];
+        }
+    }
+
+    // Сброс прокрутки при смене страницы
+    var cw = document.getElementById('content-wrap');
+    if (cw) cw.scrollTop = 0;
+
+    // Buttons
+    var btnBack   = document.getElementById('btnBack');
+    var btnNext   = document.getElementById('btnNext');
+    var btnCancel = document.getElementById('btnCancel');
+
+    btnBack.style.display   = (page > 0 && page < 4) ? '' : 'none';
+    btnCancel.style.display = (page === 4) ? 'none' : '';
+
+    if (page === 2) {
+        btnNext.innerHTML     = '&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#8594;';
+        btnNext.style.display = '';
+    } else if (page === 3 || page === 4) {
+        btnNext.style.display = 'none';
+    } else {
+        btnNext.innerHTML     = '&#1044;&#1072;&#1083;&#1077;&#1077; &#8250;';
+        btnNext.style.display = '';
+    }
+    if (page === 1) btnNext.disabled = !nodeFound;
+    else btnNext.disabled = false;
+
+    var bottomBar = document.getElementById('bottom-bar');
+    if (bottomBar) bottomBar.style.display = (page === 4) ? 'none' : '';
+}
+
+// ============================================================
+// Page 1 — Node.js
+// ============================================================
+function checkNode() {
+    var el = document.getElementById('nodeStatus');
+    el.innerHTML = '<div class="sbox sbox-info">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1103;&#1102;&#1089;&#1100;...</div>';
+
+    // Portable node?
+    var portable = projectDir + '\\node\\node.exe';
+    if (oFSO.FileExists(portable)) {
+        try {
+            var envPath = oShell.Environment('PROCESS')('PATH');
+            oShell.Environment('PROCESS')('PATH') = projectDir + '\\node;' + envPath;
+        } catch(e) {}
+        nodeVersion = rtrim(getOutput('node --version'));
+        nodeFound = true;
+        el.innerHTML = '<div class="sbox sbox-ok">&#10003; Portable Node.js &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;<br>&#1042;&#1077;&#1088;&#1089;&#1080;&#1103;: ' + nodeVersion + '</div>';
+        updateUI();
+        return;
+    }
+
+    // System node?
+    var ver = rtrim(getOutput('node --version 2>nul'));
+    if (ver.length > 0 && ver.charAt(0) === 'v') {
+        nodeVersion = ver;
+        nodeFound = true;
+        el.innerHTML = '<div class="sbox sbox-ok">&#10003; &#1057;&#1080;&#1089;&#1090;&#1077;&#1084;&#1085;&#1099;&#1081; Node.js &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;<br>&#1042;&#1077;&#1088;&#1089;&#1080;&#1103;: ' + ver + '</div>';
+        updateUI();
+        return;
+    }
+
+    nodeFound = false;
+    el.innerHTML = '<div class="sbox sbox-warn" style="padding:14px 16px;">'
+        + '<div style="margin-bottom:12px;">&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1077; Node.js &#1089; <a href="https://nodejs.org/" style="color:#7098f8;">nodejs.org</a> &#1080;&#1083;&#1080; &#1074;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1087;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1080; &#1089;&#1082;&#1072;&#1095;&#1080;&#1090;&#1077; portable.</div>'
+        + '<div style="margin-bottom:10px;"><span style="margin-right:8px;">&#1042;&#1077;&#1088;&#1089;&#1080;&#1103; Node.js:</span>'
+        + '<select id="nodeVersionSelect" style="background:#161630; color:#e0e0e0; border:1px solid #2a2a50; border-radius:4px; padding:4px 8px;"><option value="v20.11.0">20 LTS (&#1088;&#1077;&#1082;&#1086;&#1084;&#1077;&#1085;&#1076;&#1091;&#1077;&#1090;&#1089;&#1103;)</option><option value="v22.12.0">22</option><option value="v18.20.4">18 LTS</option><option value="v16.20.2">16 LTS</option></select></div>'
+        + '<div style="margin-bottom:12px;"><span style="margin-right:10px;">&#1056;&#1072;&#1079;&#1088;&#1103;&#1076;&#1085;&#1086;&#1089;&#1090;&#1100;:</span>'
+        + '<label style="margin-right:14px;"><input type="radio" name="nodeArch" value="" checked> &#1040;&#1074;&#1090;&#1086;</label><label style="margin-right:14px;"><input type="radio" name="nodeArch" value="x64"> 64-bit</label><label><input type="radio" name="nodeArch" value="x86"> 32-bit</label></div>'
+        + '<button class="btn btn-primary" id="btnDownloadNode" onclick="downloadNode()">&#1057;&#1082;&#1072;&#1095;&#1072;&#1090;&#1100; portable Node.js</button></div>';
+    updateUI();
+}
+
+var downloadNodeTimer = null;
+
+function downloadNode() {
+    var el = document.getElementById('nodeStatus');
+    var btn = document.getElementById('btnDownloadNode');
+    if (btn) btn.disabled = true;
+    var verEl = document.getElementById('nodeVersionSelect');
+    var nodeVer = (verEl && verEl.value) ? verEl.value : 'v20.11.0';
+    if (nodeVer.indexOf('v') !== 0) nodeVer = 'v' + nodeVer;
+    var archParam = '';
+    var archRadios = document.getElementsByName('nodeArch');
+    for (var i = 0; i < archRadios.length; i++) {
+        if (archRadios[i].checked) { archParam = archRadios[i].value; break; }
+    }
+    var archLabel = (archParam === 'x64') ? '64-bit' : ((archParam === 'x86') ? '32-bit' : '&#1040;&#1074;&#1090;&#1086;');
+    el.innerHTML = '<div class="sbox sbox-info">&#1057;&#1082;&#1072;&#1095;&#1080;&#1074;&#1072;&#1085;&#1080;&#1077; Node.js ' + nodeVer + ' (' + archLabel + '). &#1055;&#1086;&#1076;&#1086;&#1078;&#1076;&#1080;&#1090;&#1077;, &#1101;&#1090;&#1086; &#1084;&#1086;&#1078;&#1077;&#1090; &#1079;&#1072;&#1085;&#1103;&#1090;&#1100; 1&#8211;2 &#1084;&#1080;&#1085;&#1091;&#1090;&#1099;.<br><br><div class="prog-bar-loading"><div class="prog-fill-loading"></div></div></div>';
+
+    oShell.Environment('Process')('TAXES_PROJECT') = projectDir;
+    var psScript = projectDir + '\\install\\windows\\download-node.ps1';
+    var psContent = [
+        'param([ValidateSet("x64","x86","arm64","")][string]$Arch = "")',
+        '$ErrorActionPreference = "Stop"',
+        '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12',
+        '$nodeVer = "' + nodeVer + '"',
+        'if ($Arch -eq "") { $p = [System.Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", "Machine"); if ($p -eq "AMD64") { $Arch = "x64" } elseif ($p -eq "ARM64") { $Arch = "arm64" } else { $Arch = "x86" } }',
+        '$url = "https://nodejs.org/dist/" + $nodeVer + "/node-" + $nodeVer + "-win-" + $Arch + ".zip"',
+        '$zip = Join-Path $env:TEMP "node.zip"',
+        '$tmp = Join-Path $env:TEMP "node-temp"',
+        '$dest = Join-Path $env:TAXES_PROJECT "node"',
+        'New-Item -ItemType Directory -Path $dest -Force | Out-Null',
+        'Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing',
+        'Expand-Archive -Path $zip -DestinationPath $tmp -Force',
+        'Copy-Item -Path (Join-Path $tmp ("node-" + $nodeVer + "-win-" + $Arch + "\\*")) -Destination $dest -Recurse -Force',
+        'Remove-Item $zip -Force -ErrorAction SilentlyContinue',
+        'Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue'
+    ].join(';\n');
+    try {
+        var f = oFSO.CreateTextFile(psScript, true, false);
+        f.Write(psContent);
+        f.Close();
+    } catch(e) {
+        el.innerHTML = '<div class="sbox sbox-err">&#1054;&#1096;&#1080;&#1073;&#1082;&#1072;: ' + e.message + '</div>' + (btn ? '<button class="btn btn-primary" onclick="downloadNode()" style="margin-top:8px;">&#1055;&#1086;&#1074;&#1090;&#1086;&#1088;&#1080;&#1090;&#1100;</button>' : '');
+        if (btn) btn.disabled = false;
+        return;
+    }
+    var runCmd = 'powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + psScript + '"';
+    if (archParam) runCmd += ' -Arch "' + archParam + '"';
+    oShell.Run(runCmd, 0, false);
+
+    var attempts = 0;
+    var maxAttempts = 90;
+    downloadNodeTimer = window.setInterval(function() {
+        attempts++;
+        if (oFSO.FileExists(projectDir + '\\node\\node.exe')) {
+            window.clearInterval(downloadNodeTimer);
+            downloadNodeTimer = null;
+            el.innerHTML = '<div class="sbox sbox-ok">&#10003; Node.js &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085; &#1074; &#1087;&#1072;&#1087;&#1082;&#1091; node/</div>';
+            window.setTimeout(checkNode, 500);
+            return;
+        }
+        if (attempts >= maxAttempts) {
+            window.clearInterval(downloadNodeTimer);
+            downloadNodeTimer = null;
+            el.innerHTML = '<div class="sbox sbox-err">&#1058;&#1072;&#1081;&#1084;&#1091;&#1090; &#1080;&#1083;&#1080; &#1086;&#1096;&#1080;&#1073;&#1082;&#1072;. &#1055;&#1086;&#1087;&#1088;&#1086;&#1073;&#1091;&#1081;&#1090;&#1077; &#1079;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100; download-node.bat &#1074;&#1088;&#1091;&#1095;&#1085;&#1091;&#1102.</div>' + '<button class="btn btn-primary" onclick="downloadNode()" style="margin-top:8px;">&#1055;&#1086;&#1074;&#1090;&#1086;&#1088;&#1080;&#1090;&#1100;</button>';
+        }
+    }, 2000);
+}
+
+// ============================================================
+// Page 2 — Access
+// ============================================================
+function setAccess(t) {
+    accessType = t;
+    document.getElementById('rc_local').className = (t === 'local') ? 'radio-card selected' : 'radio-card';
+    document.getElementById('rc_inet').className  = (t === 'inet')  ? 'radio-card selected' : 'radio-card';
+    document.getElementById('inetBox').style.display = (t === 'inet') ? '' : 'none';
+}
+
+function detectIP() {
+    var out   = getOutput('ipconfig');
+    var lines = out.split('\n');
+    var ip    = '127.0.0.1';
+    for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i];
+        if (ln.indexOf('IPv4') !== -1) {
+            var idx = ln.lastIndexOf(':');
+            if (idx !== -1) {
+                var c = rtrim(ln.substring(idx + 1).replace(/\r/g, ''));
+                if (c && c !== '127.0.0.1') { ip = c; break; }
+            }
+        }
+    }
+    localIP = ip;
+    var t1 = document.getElementById('localIpTxt');
+    var t2 = document.getElementById('localIpTxt2');
+    if (t1) t1.innerHTML = ip;
+    if (t2) t2.innerHTML = ip;
+}
+
+// ============================================================
+// Page 3 — Autostart
+// ============================================================
+function toggleAutostart() {
+    autoEnabled = !autoEnabled;
+    document.getElementById('autostartCard').className = autoEnabled ? 'check-card checked' : 'check-card';
+    document.getElementById('autostartCbox').innerHTML = autoEnabled ? '&#10003;' : '';
+    document.getElementById('autostartOpts').className = autoEnabled ? 'indent-block show' : 'indent-block';
+}
+
+function setAutostart(t) {
+    autoType = t;
+    document.getElementById('rc_service').className = (t === 'service') ? 'radio-card selected' : 'radio-card';
+    document.getElementById('rc_folder').className  = (t === 'folder')  ? 'radio-card selected' : 'radio-card';
+}
+
+// ============================================================
+// Page 4 — Install
+// ============================================================
+function runInstall() {
+    detectIP();
+    step1_npm();
+}
+
+function step1_npm() {
+    setProgress(8, '&#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072; &#1079;&#1072;&#1074;&#1080;&#1089;&#1080;&#1084;&#1086;&#1089;&#1090;&#1077;&#1081; (npm install)...');
+    addLog('<span class="l-step">[1/3] npm install...</span>');
+    window.setTimeout(function() {
+        var ret = oShell.Run('cmd /c cd /d "' + projectDir + '" && npm install --loglevel=error', 0, true);
+        addLog(ret === 0
+            ? '<span class="l-ok">  &#10003; &#1047;&#1072;&#1074;&#1080;&#1089;&#1080;&#1084;&#1086;&#1089;&#1090;&#1080; &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1099;</span>'
+            : '<span class="l-err">  ! npm install &#1074;&#1077;&#1088;&#1085;&#1091;&#1083; &#1082;&#1086;&#1076; ' + ret + '</span>');
+        setProgress(45, '&#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;...');
+        window.setTimeout(step2_autostart, 150);
+    }, 100);
+}
+
+function getNssmPath() {
+    var nssmExe = projectDir + '\\install\\windows\\nssm\\nssm.exe';
+    return oFSO.FileExists(nssmExe) ? nssmExe : '';
+}
+
+function step2_service() {
+    addLog('<span class="l-step">[2/3] &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; Windows...</span>');
+    var logDir = projectDir + '\\logs';
+    var errLog = logDir + '\\service-err.log';
+    var outLog = logDir + '\\service-out.log';
+    oShell.Environment('Process')('TAXES_PROJECT') = projectDir;
+    var psEnsureLogs = projectDir + '\\install\\windows\\ensure-service-logs.ps1';
+    if (oFSO.FileExists(psEnsureLogs)) {
+        oShell.Run('powershell -ExecutionPolicy Bypass -File "' + psEnsureLogs + '"', 0, true);
+    }
+    try {
+        if (!oFSO.FolderExists(logDir)) oFSO.CreateFolder(logDir);
+        var headerLine = '[ ' + new Date().toLocaleString() + ' ] Log created. Service output will appear here.';
+        if (!oFSO.FileExists(errLog)) {
+            var fErr = oFSO.CreateTextFile(errLog, true);
+            fErr.WriteLine(headerLine);
+            fErr.Close();
+        } else {
+            try {
+                if (oFSO.GetFile(errLog).Size === 0) {
+                    var sErr = oFSO.OpenTextFile(errLog, 2, false);
+                    sErr.WriteLine(headerLine);
+                    sErr.Close();
+                }
+            } catch(ignore) {}
+        }
+        if (!oFSO.FileExists(outLog)) {
+            var fOut = oFSO.CreateTextFile(outLog, true);
+            fOut.WriteLine(headerLine);
+            fOut.Close();
+        } else {
+            try {
+                if (oFSO.GetFile(outLog).Size === 0) {
+                    var sOut = oFSO.OpenTextFile(outLog, 2, false);
+                    sOut.WriteLine(headerLine);
+                    sOut.Close();
+                }
+            } catch(ignore) {}
+        }
+    } catch(e) {
+        addLog('<span class="l-err">  ! &#1053;&#1077; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100; logs: ' + (e.message || e) + '</span>');
+    }
+    var nssmExe = getNssmPath();
+    if (!nssmExe) {
+        addLog('<span class="l-step">  &#1057;&#1082;&#1072;&#1095;&#1080;&#1074;&#1072;&#1085;&#1080;&#1077; NSSM...</span>');
+        oShell.Environment('Process')('TAXES_PROJECT') = projectDir;
+        var psScript = projectDir + '\\install\\windows\\download-nssm.ps1';
+        var pr = oShell.Run('powershell -ExecutionPolicy Bypass -File "' + psScript + '" -ProjectDir "' + projectDir + '"', 0, true);
+        nssmExe = getNssmPath();
+        if (!nssmExe) {
+            addLog('<span class="l-err">  ! &#1053;&#1077; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1089;&#1082;&#1072;&#1095;&#1072;&#1090;&#1100; NSSM. &#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1055;&#1072;&#1087;&#1082;&#1091; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;.</span>');
+            try {
+                var logPath = projectDir + '\\install\\windows\\download-nssm.log';
+                if (oFSO.FileExists(logPath)) {
+                    var stream = oFSO.OpenTextFile(logPath, 1, false, -1);
+                    var errText = stream.ReadAll();
+                    stream.Close();
+                    if (errText && errText.length > 0) addLog('<span class="l-err">  ' + errText.replace(/</g, '&lt;').substring(0, 200) + '</span>');
+                }
+            } catch(ignore) {}
+            setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1080;&#1077;...');
+            showContinueBtn();
+            return;
+        }
+        addLog('<span class="l-ok">  &#10003; NSSM &#1091;&#1089;&#1090;&#1086;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;</span>');
+    }
+    var nodeExe = projectDir + '\\node\\node.exe';
+    if (!oFSO.FileExists(nodeExe)) {
+        addLog('<span class="l-err">  ! &#1044;&#1083;&#1103; &#1089;&#1083;&#1091;&#1078;&#1073;&#1099; &#1085;&#1091;&#1078;&#1077;&#1085; Node.js &#1074; &#1087;&#1080;&#1087;&#1082;&#1077; node/. &#1057;&#1082;&#1072;&#1095;&#1080;&#1090;&#1077; portable Node.js &#1085;&#1072; &#1096;&#1080;&#1075;&#1077; 2.</span>');
+        setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1080;&#1077;...');
+        showContinueBtn();
+        return;
+    }
+    oShell.Run('sc stop TaxesSender', 0, true);
+    oShell.Run('sc delete TaxesSender', 0, true);
+    window.setTimeout(function() {
+        var hadError = false;
+        var r1 = oShell.Run('"' + nssmExe + '" install TaxesSender "' + nodeExe + '"', 0, true);
+        if (r1 !== 0) {
+            addLog('<span class="l-err">  ! &#1054;&#1096;&#1080;&#1073;&#1082;&#1072; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1103; &#1089;&#1083;&#1091;&#1078;&#1073;&#1099; (&#1082;&#1086;&#1076; ' + r1 + ')</span>');
+            hadError = true;
+        } else {
+            oShell.Run('"' + nssmExe + '" set TaxesSender AppDirectory "' + projectDir + '"', 0, true);
+            oShell.Run('"' + nssmExe + '" set TaxesSender AppParameters "server/index.js"', 0, true);
+            var logDir = projectDir + '\\logs';
+            var errLog = logDir + '\\service-err.log';
+            var outLog = logDir + '\\service-out.log';
+            try {
+                if (!oFSO.FolderExists(logDir)) oFSO.CreateFolder(logDir);
+                if (!oFSO.FileExists(errLog)) {
+                    var fErr = oFSO.CreateTextFile(errLog, true);
+                    fErr.WriteLine('[ ' + new Date().toLocaleString() + ' ] Log created. Service stderr will appear here.');
+                    fErr.Close();
+                }
+                if (!oFSO.FileExists(outLog)) {
+                    var fOut = oFSO.CreateTextFile(outLog, true);
+                    fOut.WriteLine('[ ' + new Date().toLocaleString() + ' ] Log created. Service stdout will appear here.');
+                    fOut.Close();
+                }
+                oShell.Run('"' + nssmExe + '" set TaxesSender AppStdout "' + outLog + '"', 0, true);
+                oShell.Run('"' + nssmExe + '" set TaxesSender AppStderr "' + errLog + '"', 0, true);
+                oShell.Run('"' + nssmExe + '" set TaxesSender AppStdoutCreationDisposition 4', 0, true);
+                oShell.Run('"' + nssmExe + '" set TaxesSender AppStderrCreationDisposition 4', 0, true);
+            } catch(e) {
+                addLog('<span class="l-err">  ! &#1051;&#1086;&#1075;&#1080; &#1089;&#1083;&#1091;&#1078;&#1073;&#1099;: ' + (e.message || e) + '</span>');
+                hadError = true;
+            }
+            var r2 = oShell.Run('"' + nssmExe + '" start TaxesSender', 0, true);
+            addLog(r2 === 0
+                ? '<span class="l-ok">  &#10003; &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; "TaxesSender" &#1091;&#1089;&#1090;&#1086;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1072; &#1080; &#1079;&#1072;&#1087;&#1091;&#1096;&#1077;&#1085;&#1072;</span>'
+                : '<span class="l-ok">  &#10003; &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; &#1091;&#1089;&#1090;&#1086;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1072;. &#1054;&#1096;&#1080;&#1073;&#1082;&#1080; &#8212; &#1074; &#1087;&#1072;&#1082;&#1077; logs\\service-err.log</span>');
+        }
+        setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1080;&#1077;...');
+        scheduleFinish(hadError);
+    }, 500);
+}
+
+function step2_autostart() {
+    addLog('<span class="l-step">[2/3] &#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;...</span>');
+
+    if (!autoEnabled) {
+        addLog('  &#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072;: &#1085;&#1077; &#1085;&#1072;&#1089;&#1090;&#1088;&#1072;&#1080;&#1074;&#1072;&#1077;&#1090;&#1089;&#1103;');
+        setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1080;&#1077;...');
+        window.setTimeout(step3_finish, 100);
+        return;
+    }
+
+    if (autoType === 'service') {
+        step2_service();
+        return;
+    }
+    var startupDir  = oShell.SpecialFolders('Startup');
+    var startupFile = startupDir + '\\TaxesSender.bat';
+    try {
+            var sf = oFSO.CreateTextFile(startupFile, true, false);
+            sf.WriteLine('@echo off');
+            sf.WriteLine('cd /d "' + projectDir + '"');
+            sf.WriteLine('call start.bat');
+            sf.Close();
+            addLog('<span class="l-ok">  &#10003; TaxesSender.bat &#1074; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1077; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;</span>');
+        } catch(e) {
+            addLog('<span class="l-err">  ! ' + e.message + '</span>');
+            setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1080;&#1077;...');
+            showContinueBtn();
+            return;
+        }
+
+    setProgress(80, '&#1047;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1080;&#1077;...');
+    window.setTimeout(step3_finish, 150);
+}
+
+function step3_finish() {
+    addLog('<span class="l-step">[3/3] &#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072; &#1079;&#1072;&#1074;&#1077;&#1088;&#1096;&#1077;&#1085;&#1072;!</span>');
+    setProgress(100, '&#1043;&#1086;&#1090;&#1086;&#1074;&#1086;!');
+
+    document.getElementById('successDesc').innerHTML = '&#1055;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077; &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1086;. &#1054;&#1090;&#1082;&#1088;&#1086;&#1081;&#1090;&#1077; &#1072;&#1076;&#1088;&#1077;&#1089; &#1085;&#1080;&#1078;&#1077; &#1080;&#1083;&#1080; &#1085;&#1072;&#1078;&#1084;&#1080;&#1090;&#1077; &#171;&#1047;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100;&#187;.';
+    var ip = rtrim(localIP);
+    if (!ip || ip === '127.0.0.1') ip = '...';
+    var block = '<b>&#127968; &#1051;&#1086;&#1082;&#1072;&#1083;&#1100;&#1085;&#1086;</b> (&#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1085;&#1072; &#1101;&#1090;&#1086;&#1084; &#1082;&#1086;&#1084;&#1087;&#1100;&#1102;&#1090;&#1077;&#1088;&#1077;):<br><b>http://127.0.0.1:3847</b><br><br>';
+    block += '<b>&#128268; &#1042; &#1089;&#1077;&#1090;&#1080;</b> (&#1076;&#1086;&#1084;&#1072;&#1096;&#1085;&#1103;&#1103; &#1089;&#1077;&#1090;&#1100;):<br><b>http://' + ip + ':3847</b><br><br>';
+    block += '<b>&#128274; &#1055;&#1086;&#1088;&#1090;</b>: 3847<br><br>';
+    block += '&#127760; &#1044;&#1083;&#1103; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1072; &#1080;&#1079; &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;&#1072; &#1086;&#1090;&#1082;&#1088;&#1086;&#1081;&#1090;&#1077; &#1087;&#1086;&#1088;&#1090; 3847 &#1085;&#1072; &#1088;&#1091;&#1090;&#1077;&#1088;&#1077; (Port Forwarding) &#1085;&#1072; &#1101;&#1090;&#1086;&#1090; &#1082;&#1086;&#1084;&#1087;&#1100;&#1102;&#1090;&#1077;&#1088; (<b>' + ip + '</b>). &#1045;&#1089;&#1083;&#1080; &#1077;&#1089;&#1090;&#1100; &#1076;&#1086;&#1084;&#1077;&#1085; &#8212; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1090;&#1077; A-&#1079;&#1072;&#1087;&#1080;&#1089;&#1100; &#1085;&#1072; &#1074;&#1072;&#1096; IP.';
+    document.getElementById('successUrls').innerHTML = block;
+
+    page = 4;
+    updateUI();
+}
+
+function checkServerRunning() {
+    try {
+        var x = new ActiveXObject('MSXML2.ServerXMLHTTP.6.0');
+        x.setTimeouts(1500, 1500, 1500, 1500);
+        x.open('GET', 'http://127.0.0.1:3847/', false);
+        x.send();
+        return (x.status >= 200 && x.status < 600);
+    } catch(e1) {
+        try {
+            var y = new ActiveXObject('MSXML2.XMLHTTP');
+            y.setTimeouts(1500, 1500, 1500, 1500);
+            y.open('GET', 'http://127.0.0.1:3847/', false);
+            y.send();
+            return (y.status >= 200 && y.status < 600);
+        } catch(e2) {
+            return false;
+        }
+    }
+}
+
+function startNodeDirect() {
+    var nodeExe = projectDir + '\\node\\node.exe';
+    var pathPrefix = oFSO.FileExists(nodeExe) ? ('set "PATH=' + projectDir + '\\node;%PATH%" && ') : '';
+    var cmd = 'cmd /c ' + pathPrefix + 'cd /d "' + projectDir + '" && start "" node server/index.js';
+    oShell.Run(cmd, 1, false);
+}
+
+function openAppInBrowser() {
+    try {
+        oShell.Run('cmd /c start "" "http://127.0.0.1:3847"', 1, false);
+    } catch(e) {}
+}
+
+function launchApp() {
+    var lb = document.getElementById('launchBtn');
+    lb.disabled = true;
+    lb.innerHTML = '&#9203; &#1047;&#1072;&#1087;&#1091;&#1089;&#1082;...';
+
+    if (autoEnabled && autoType === 'service') {
+        oShell.Run('net start TaxesSender', 0, false);
+    } else {
+        oShell.Run('cmd /c start "" /d "' + projectDir + '" "' + projectDir + '\\start.bat"', 1, false);
+    }
+
+    window.setTimeout(function() {
+        if (checkServerRunning()) { lb.innerHTML = '&#10003; &#1047;&#1072;&#1087;&#1091;&#1096;&#1077;&#1085;&#1086;'; openAppInBrowser(); return; }
+        lb.innerHTML = '&#9203; &#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072;...';
+        if (autoEnabled && autoType === 'service') {
+            oShell.Run('net start TaxesSender', 0, false);
+        } else {
+            startNodeDirect();
+        }
+        window.setTimeout(function() {
+            if (checkServerRunning()) { lb.innerHTML = '&#10003; &#1047;&#1072;&#1087;&#1091;&#1096;&#1077;&#1085;&#1086;'; openAppInBrowser(); }
+            else { lb.disabled = false; lb.innerHTML = '&#128640; &#1047;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100; &#1087;&#1088;&#1080;&#1083;&#1086;&#1077;&#1080;&#1077;'; }
+        }, 3500);
+    }, 2500);
+}
+
+
+// ============================================================
+// Helpers
+// ============================================================
+function setProgress(pct, label) {
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progLabel').innerHTML  = label;
+}
+
+function addLog(msg) {
+    var box = document.getElementById('logBox');
+    box.innerHTML += msg + '<br>';
+    box.scrollTop  = box.scrollHeight;
+}
+
+function showContinueBtn() {
+    if (document.getElementById('btnContinueAfterError')) return;
+    var box = document.getElementById('logBox');
+    box.innerHTML += '<br><span class="l-step">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1081;&#1090;&#1077; &#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077; &#1086;&#1096;&#1080;&#1073;&#1082;&#1080; &#1080; &#1085;&#1072;&#1078;&#1084;&#1080;&#1090;&#1077; &#171;&#1055;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1080;&#1090;&#1100;&#187;.</span><br>';
+    box.innerHTML += '<button class="btn btn-primary" id="btnContinueAfterError" onclick="step3_finish()" style="margin-top:10px;">&#1055;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1080;&#1090;&#1100;</button>';
+    box.scrollTop = box.scrollHeight;
+}
+
+function scheduleFinish(hadError) {
+    if (hadError) showContinueBtn(); else window.setTimeout(step3_finish, 150);
+}
+
+function isAdmin() {
+    try { return oShell.Run('net session', 0, true) === 0; } catch(e) { return false; }
+}
+
+function getOutput(cmd) {
+    try {
+        var oExec = oShell.Exec('cmd /c ' + cmd);
+        return oExec.StdOut.ReadAll();
+    } catch(e) { return ''; }
+}
+
+function rtrim(s) {
+    return String(s).replace(/^\s+|\s+$/g, '');
+}
+
+// ============================================================
+// Existing install detection (Welcome page)
+// ============================================================
+function serviceExists() {
+    return (oShell.Run('sc query TaxesSender', 0, true) === 0);
+}
+
+function checkExistingInstall() {
+    var serviceFound = serviceExists();
+    var startupFile  = oShell.SpecialFolders('Startup') + '\\TaxesSender.bat';
+    var folderFound  = oFSO.FileExists(startupFile);
+
+    if (!serviceFound && !folderFound) return;
+
+    var html = '';
+    html += uiRow('&#1057;&#1083;&#1091;&#1078;&#1073;&#1072; Windows "TaxesSender"', serviceFound);
+    html += uiRow('TaxesSender.bat (&#1087;&#1072;&#1087;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;)', folderFound);
+
+    document.getElementById('existingRows').innerHTML = html;
+    document.getElementById('existingSection').style.display = '';
+}
+
+function doRemoveOnWelcome() {
+    var btn = document.getElementById('btnWelcomeRemove');
+    btn.disabled = true;
+    btn.innerHTML = '&#9203; &#1059;&#1076;&#1072;&#1083;&#1103;&#1102;...';
+
+    var startupFile = oShell.SpecialFolders('Startup') + '\\TaxesSender.bat';
+    var html = '';
+
+    if (serviceExists()) {
+        var nssmExe = getNssmPath();
+        if (nssmExe) {
+            oShell.Run('"' + nssmExe + '" stop TaxesSender', 0, true);
+            oShell.Run('"' + nssmExe + '" remove TaxesSender confirm', 0, true);
+        } else {
+            oShell.Run('sc stop TaxesSender', 0, true);
+            oShell.Run('sc delete TaxesSender', 0, true);
+        }
+        html += '<div class="sbox sbox-ok" style="font-size:14px;">&#10003; &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; &#1091;&#1076;&#1080;&#1083;&#1077;&#1085;&#1072;</div>';
+    }
+
+    // Startup folder
+    if (oFSO.FileExists(startupFile)) {
+        try {
+            oFSO.DeleteFile(startupFile, true);
+            html += '<div class="sbox sbox-ok" style="font-size:14px;">&#10003; TaxesSender.bat &#1091;&#1076;&#1072;&#1083;&#1105;&#1085; &#1080;&#1079; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;</div>';
+        } catch(e) {
+            html += '<div class="sbox sbox-err" style="font-size:14px;">! &#1054;&#1096;&#1080;&#1073;&#1082;&#1072;: ' + e.message + '</div>';
+        }
+    }
+
+    html += '<div class="sbox sbox-info" style="font-size:14px;">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1086;&#1090;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1072;. &#1053;&#1072;&#1078;&#1084;&#1080;&#1090;&#1077; &#171;&#1044;&#1072;&#1083;&#1077;&#1077;&#187; &#1076;&#1083;&#1103; &#1087;&#1077;&#1088;&#1077;&#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1080;.</div>';
+
+    // Скрываем весь блок предупреждения
+    document.getElementById('existingSection').style.display = 'none';
+    // Показываем результат снаружи блока
+    document.getElementById('existingDone').innerHTML = html;
+    document.getElementById('existingDone').style.display = '';
+}
+
+// ============================================================
+// Uninstall section (on success page)
+// ============================================================
+function toggleUninstall() {
+    var panel = document.getElementById('uninstallPanel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        document.getElementById('btnUninstallToggle').innerHTML = '&#9650; &#1057;&#1074;&#1077;&#1088;&#1085;&#1091;&#1090;&#1100;';
+        checkUninstallStatus();
+    } else {
+        panel.style.display = 'none';
+        document.getElementById('btnUninstallToggle').innerHTML = '&#9881; &#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1086;&#1081;';
+    }
+}
+
+function checkUninstallStatus() {
+    var serviceFound = serviceExists();
+    var startupFile  = oShell.SpecialFolders('Startup') + '\\TaxesSender.bat';
+    var folderFound  = oFSO.FileExists(startupFile);
+    var nodeFound    = oFSO.FileExists(projectDir + '\\node\\node.exe');
+
+    var anyFound = serviceFound || folderFound;
+
+    var html = '<div style="background:#07071a;border:1px solid #161630;border-radius:6px;padding:8px 12px;margin-bottom:8px;">';
+    html += uiRow('&#1057;&#1083;&#1091;&#1078;&#1073;&#1072; Windows "TaxesSender"', serviceFound);
+    html += uiRow('TaxesSender.bat (&#1087;&#1072;&#1087;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;)', folderFound);
+    html += '</div>';
+
+    if (!anyFound) {
+        html += '<div class="sbox sbox-info" style="font-size:14px;">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1085;&#1077; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1077;&#1085;&#1072; &#8212; &#1085;&#1077;&#1095;&#1077;&#1075;&#1086; &#1091;&#1076;&#1072;&#1083;&#1103;&#1090;&#1100;.</div>';
+    }
+
+    document.getElementById('uninstallStatus').innerHTML = html;
+    document.getElementById('btnDoRemove').style.display = anyFound ? '' : 'none';
+
+    var nodeBlock = document.getElementById('nodeRemoveBlock');
+    var nodeStatusEl = document.getElementById('nodeRemoveStatus');
+    var btnNode = document.getElementById('btnDoRemoveNode');
+    if (nodeFound) {
+        nodeBlock.style.display = '';
+        nodeStatusEl.innerHTML = '<div class="sbox sbox-info" style="font-size:14px;">Node.js &#1091;&#1089;&#1090;&#1086;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085; &#1101;&#1090;&#1080;&#1084; &#1087;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084; &#1074; &#1087;&#1072;&#1087;&#1082;&#1091; node/. &#1052;&#1086;&#1078;&#1085;&#1086; &#1091;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;, &#1077;&#1089;&#1083;&#1080; &#1085;&#1077; &#1085;&#1091;&#1078;&#1077;&#1085;.</div>';
+        btnNode.style.display = '';
+    } else {
+        nodeBlock.style.display = 'none';
+    }
+}
+
+function uiRow(label, found) {
+    return '<div class="ui-row">'
+        + '<div class="ui-badge-cell"><span class="ui-badge ' + (found ? 'ui-found' : 'ui-missing') + '">'
+        + (found ? '&#1053;&#1072;&#1081;&#1076;&#1077;&#1085;&#1086;' : '&#1054;&#1090;&#1089;&#1091;&#1090;&#1089;&#1090;&#1074;&#1091;&#1077;&#1090;') + '</span></div>'
+        + '<div class="ui-label-cell">' + label + '</div>'
+        + '</div>';
+}
+
+function doRemove() {
+    var html = '';
+    var startupFile = oShell.SpecialFolders('Startup') + '\\TaxesSender.bat';
+
+    // Service
+    if (serviceExists()) {
+        var nssmExe = getNssmPath();
+        if (nssmExe) {
+            oShell.Run('"' + nssmExe + '" stop TaxesSender', 0, true);
+            oShell.Run('"' + nssmExe + '" remove TaxesSender confirm', 0, true);
+        } else {
+            oShell.Run('sc stop TaxesSender', 0, true);
+            oShell.Run('sc delete TaxesSender', 0, true);
+        }
+        html += '<div class="sbox sbox-ok" style="font-size:14px;">&#10003; &#1057;&#1083;&#1091;&#1078;&#1073;&#1072; &#1091;&#1076;&#1080;&#1083;&#1077;&#1085;&#1072;</div>';
+    }
+
+    // Startup folder
+    if (oFSO.FileExists(startupFile)) {
+        try {
+            oFSO.DeleteFile(startupFile, true);
+            html += '<div class="sbox sbox-ok" style="font-size:14px;">&#10003; TaxesSender.bat &#1091;&#1076;&#1072;&#1083;&#1105;&#1085; &#1080;&#1079; &#1072;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080;</div>';
+        } catch(e) {
+            html += '<div class="sbox sbox-err" style="font-size:14px;">! &#1054;&#1096;&#1080;&#1073;&#1082;&#1072;: ' + e.message + '</div>';
+        }
+    }
+
+    html += '<div class="sbox sbox-info" style="font-size:14px;">&#1040;&#1074;&#1090;&#1086;&#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1086;&#1090;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1072;. &#1055;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077; &#1086;&#1089;&#1090;&#1072;&#1077;&#1090;&#1089;&#1103; &#1085;&#1072; &#1084;&#1077;&#1089;&#1090;&#1077;.</div>';
+
+    document.getElementById('uninstallStatus').innerHTML = html;
+    document.getElementById('btnDoRemove').style.display = 'none';
+    checkUninstallStatus();
+}
+
+function doRemoveNode() {
+    var nodeFolder = projectDir + '\\node';
+    if (!oFSO.FolderExists(nodeFolder)) {
+        checkUninstallStatus();
+        return;
+    }
+    var btnNode = document.getElementById('btnDoRemoveNode');
+    var nodeStatusEl = document.getElementById('nodeRemoveStatus');
+    btnNode.disabled = true;
+    btnNode.innerHTML = '&#9203; &#1059;&#1076;&#1072;&#1083;&#1103;&#1102;...';
+    var html = '';
+    try {
+        oFSO.DeleteFolder(nodeFolder, true);
+        html = '<div class="sbox sbox-ok" style="font-size:14px;">&#10003; &#1055;&#1072;&#1087;&#1082;&#1072; node/ &#1091;&#1076;&#1072;&#1083;&#1077;&#1085;&#1072;. Node.js &#1073;&#1086;&#1083;&#1100;&#1096;&#1077; &#1085;&#1077; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; &#1087;&#1088;&#1080;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084;.</div>';
+        btnNode.style.display = 'none';
+    } catch(e) {
+        html = '<div class="sbox sbox-err" style="font-size:14px;">! &#1054;&#1096;&#1080;&#1073;&#1082;&#1072;: ' + e.message + '</div>';
+        btnNode.disabled = false;
+        btnNode.innerHTML = '&#10007; &#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100; Node.js (&#1087;&#1072;&#1087;&#1082;&#1091; node/)';
+    }
+    nodeStatusEl.innerHTML = html;
+}
+</script>
+
+</body>
+</html>

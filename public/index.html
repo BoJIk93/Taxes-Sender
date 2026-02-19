@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxes Sender - Отправка чеков в налоговую</title>
+    
+    <!-- Bootstrap 5.3 CSS (локально) -->
+    <link href="/css/vendor/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons (локально) -->
+    <link rel="stylesheet" href="/css/vendor/bootstrap-icons.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- ===== Экран авторизации ===== -->
+    <div id="authOverlay" class="auth-overlay hidden" aria-hidden="true">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="bi bi-receipt"></i>
+                <h1>Taxes Sender</h1>
+                <p>Вход в систему</p>
+            </div>
+            <form id="authForm" onsubmit="handleLogin(event)" autocomplete="on">
+                <div class="auth-field">
+                    <label for="authLogin">Логин</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person"></i>
+                        <input type="text" id="authLogin" name="username" autocomplete="username" required placeholder="Введите логин">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label for="authPassword">Пароль</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="authPassword" name="password" autocomplete="current-password" required placeholder="Введите пароль">
+                        <button type="button" class="auth-toggle-pass" onclick="toggleAuthPasswordVisibility()" tabindex="-1" aria-label="Показать пароль">
+                            <i class="bi bi-eye" id="authTogglePassIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="authError" class="auth-error hidden"></div>
+                <button type="submit" class="auth-submit" id="authSubmitBtn">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                </button>
+            </form>
+            <div class="auth-hint">
+                <i class="bi bi-info-circle me-1"></i>
+                По умолчанию: <strong>admin</strong> / <strong>admin</strong>. Измените в настройках после входа.
+            </div>
+        </div>
+    </div>
+
+    <!-- Шторка: обновление и синхронизация при запуске -->
+    <div id="syncShutter" class="sync-shutter hidden" aria-hidden="true">
+        <div class="sync-shutter-content">
+            <div class="sync-shutter-spinner"></div>
+            <p class="sync-shutter-text">Идёт обновление и синхронизация...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="app-header sticky-top">
+        <div class="container-fluid">
+            <div class="d-flex flex-wrap align-items-center gap-2 py-3">
+                <div class="app-logo d-flex align-items-center gap-3 me-auto">
+                    <i class="bi bi-receipt fs-2"></i>
+                    <span class="fw-bold fs-4">Taxes Sender</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm btn-icon scroll-to-top-btn hidden" id="scrollToTopBtn" onclick="scrollToTop()" title="Наверх" aria-label="Прокрутить вверх">
+                        <i class="bi bi-arrow-up"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openServicesModal()" id="servicesBtn">
+                    <i class="bi bi-folder-plus me-1"></i>
+                    Добавить услуги
+                    <span id="servicesBadge" class="badge bg-light text-dark ms-1 hidden">0</span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm hidden" onclick="toggleFilters()" id="showFiltersBtn">
+                    <i class="bi bi-search me-1"></i>
+                    Поиск
+                </button>
+                <div class="btn-group position-relative sync-btn-group" id="syncBtnGroup">
+                    <button class="btn btn-outline-secondary btn-sm rounded-start" onclick="syncYookassa()" id="syncYookassaBtn" title="Синхронизация с ЮKassa">
+                        <i class="bi bi-arrow-repeat me-1" id="yookassaSyncIcon"></i>Автосинхронизация
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-end" onclick="toggleAutoSyncDropdown()" id="autoSyncDropdownBtn" title="Настройки автосинхронизации">
+                        <i class="bi bi-chevron-down" id="autoSyncDropdownIcon"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" id="autoSyncDropdown">
+                        <button class="dropdown-item" onclick="quickToggleAutoSync()">
+                            <span id="autoSyncToggleText">Включить автосинхронизацию</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(5)">
+                            <i class="bi bi-clock me-2"></i>5 секунд
+                        </button>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(10)">
+                            <i class="bi bi-clock me-2"></i>10 секунд
+                        </button>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(30)">
+                            <i class="bi bi-clock me-2"></i>30 секунд
+                        </button>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(60)">
+                            <i class="bi bi-clock me-2"></i>1 минута
+                        </button>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(120)">
+                            <i class="bi bi-clock me-2"></i>2 минуты
+                        </button>
+                        <button class="dropdown-item" onclick="setAutoSyncInterval(300)">
+                            <i class="bi bi-clock me-2"></i>5 минут
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <div class="px-3 py-2">
+                            <small class="text-muted d-block">
+                                <i class="bi bi-info-circle me-1"></i>Автосинхронизация с ЮКассой
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" onclick="openAutoSendModal()" id="autoSendBtn" title="Авто-отправка новых платежей в налоговую">
+                    <i class="bi bi-send-check me-1"></i>
+                    Авто отправка
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="openSettings()" id="settingsBtn">
+                    <i class="bi bi-gear me-1"></i>
+                    Настройки
+                </button>
+                <button class="btn btn-outline-secondary btn-sm btn-icon" onclick="toggleTheme()" title="Переключить тему">
+                    <i class="bi bi-moon-stars theme-icon-dark"></i>
+                    <i class="bi bi-sun theme-icon-light d-none"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Setup Wizard -->
+    <div id="setupWizard" class="container py-5 hidden">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-receipt text-primary" style="font-size: 4rem;"></i>
+                            <h1 class="mt-3">Добро пожаловать!</h1>
+                            <p class="text-muted">Настройте подключение для начала работы</p>
+                        </div>
+                        
+                        <form id="setupForm">
+                            <div class="mb-4">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-credit-card text-primary me-2"></i>
+                                    ЮKassa (YooKassa)
+                                </h5>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">Shop ID</label>
+                                    <input type="text" class="form-control" name="yookassa_shop_id" placeholder="Например: 123456" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">Secret Key</label>
+                                    <input type="password" class="form-control" name="yookassa_secret_key" placeholder="live_xxxxx или test_xxxxx" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-bank text-primary me-2"></i>
+                                    Налоговая (ЛК НПД)
+                                </h5>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">ИНН (логин)</label>
+                                    <input type="text" class="form-control" name="nalog_login" placeholder="12 цифр вашего ИНН" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">Пароль</label>
+                                    <input type="password" class="form-control" name="nalog_password" placeholder="Пароль от ЛК ФНС" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-save me-2"></i>
+                                Сохранить и начать
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main id="mainContent" class="container-fluid py-4 hidden">
+        <!-- Stats Cards -->
+        <div id="statsWrapper" class="position-relative">
+            <div id="statsSkeleton" class="row g-3 mb-4 stats-skeleton-row">
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="pending"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="sent"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="amount"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="amountPeriod"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="earnings"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-skeleton-col" data-card-id="difference"><div class="card stat-card stat-skeleton-card"><div class="card-body"><div class="stat-icon skeleton-block"></div><div class="stat-content"><div class="skeleton-block skeleton-text mb-2" style="width:80%;height:12px"></div><div class="skeleton-block skeleton-value" style="height:28px"></div></div></div></div></div>
+            </div>
+        <div id="statsSection">
+        <div class="row g-3 mb-4" id="statsContainer">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="pending">
+                <div class="card stat-card stat-card-warning">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Ожидают отправки</div>
+                            <div class="stat-value" id="statPending">0</div>
+                            <div class="stat-subtext">Чеков · не отправлены в налоговую</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="sent">
+                <div class="card stat-card stat-card-success position-relative">
+                    <div class="stat-period-dropdown">
+                        <input type="hidden" id="sentTotalPeriod" value="all">
+                        <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleStatPeriodDropdown('sentTotalPeriod')" title="Период">
+                            <span class="stat-period-btn-text">Все время</span>
+                            <i class="bi bi-chevron-down stat-period-chevron"></i>
+                        </button>
+                        <div class="stat-period-menu dropdown-menu" id="sentTotalPeriodDropdown">
+                            <button type="button" class="dropdown-item" data-value="today">Сегодня</button>
+                            <button type="button" class="dropdown-item" data-value="yesterday">Вчера</button>
+                            <button type="button" class="dropdown-item" data-value="week">Неделя</button>
+                            <button type="button" class="dropdown-item" data-value="month">Месяц</button>
+                            <button type="button" class="dropdown-item" data-value="quarter">Квартал</button>
+                            <button type="button" class="dropdown-item" data-value="year">Год</button>
+                            <button type="button" class="dropdown-item" data-value="all">Все время</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Отправлено всего</div>
+                            <div class="stat-value" id="statSent">0</div>
+                            <div class="stat-subtext">Чеков · отправлены в налоговую</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="amount">
+                <div class="card stat-card stat-card-primary">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Сумма к отправке</div>
+                            <div class="stat-value" id="statAmount">0 ₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="amountPeriod">
+                <div class="card stat-card stat-card-info position-relative">
+                    <div class="stat-period-dropdown">
+                        <input type="hidden" id="amountPeriod" value="today">
+                        <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleStatPeriodDropdown('amountPeriod')" title="Период">
+                            <span class="stat-period-btn-text">Сегодня</span>
+                            <i class="bi bi-chevron-down stat-period-chevron"></i>
+                        </button>
+                        <div class="stat-period-menu dropdown-menu" id="amountPeriodDropdown">
+                            <button type="button" class="dropdown-item" data-value="today">Сегодня</button>
+                            <button type="button" class="dropdown-item" data-value="yesterday">Вчера</button>
+                            <button type="button" class="dropdown-item" data-value="week">Неделя</button>
+                            <button type="button" class="dropdown-item" data-value="month">Месяц</button>
+                            <button type="button" class="dropdown-item" data-value="quarter">Квартал</button>
+                            <button type="button" class="dropdown-item" data-value="year">Год</button>
+                            <button type="button" class="dropdown-item" data-value="all">Все время</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label" id="amountLabel">Отправлено в налоговую</div>
+                            <div class="stat-value" id="statAmountPeriod">0 ₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="earnings">
+                <div class="card stat-card stat-card-violet position-relative">
+                    <div class="stat-period-dropdown">
+                        <input type="hidden" id="earningsPeriod" value="today">
+                        <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleStatPeriodDropdown('earningsPeriod')" title="Период">
+                            <span class="stat-period-btn-text">Сегодня</span>
+                            <i class="bi bi-chevron-down stat-period-chevron"></i>
+                        </button>
+                        <div class="stat-period-menu dropdown-menu" id="earningsPeriodDropdown">
+                            <button type="button" class="dropdown-item" data-value="today">Сегодня</button>
+                            <button type="button" class="dropdown-item" data-value="yesterday">Вчера</button>
+                            <button type="button" class="dropdown-item" data-value="week">Неделя</button>
+                            <button type="button" class="dropdown-item" data-value="month">Месяц</button>
+                            <button type="button" class="dropdown-item" data-value="year">Год</button>
+                            <button type="button" class="dropdown-item" data-value="all">Все время</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-piggy-bank"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label" id="earningsLabel"><i class="bi bi-wallet2 me-1"></i>Заработок</div>
+                            <div class="stat-value" id="statEarnings">0 ₽</div>
+                            <div class="stat-subtext" id="earningsSubtext">Поступления от ЮКассы</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 stat-card-col" data-card-id="difference">
+                <div class="card stat-card stat-card-indigo position-relative" id="differenceStat">
+                    <div class="stat-period-dropdown">
+                        <input type="hidden" id="differencePeriod" value="all">
+                        <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleStatPeriodDropdown('differencePeriod')" title="Период">
+                            <span class="stat-period-btn-text">Все время</span>
+                            <i class="bi bi-chevron-down stat-period-chevron"></i>
+                        </button>
+                        <div class="stat-period-menu dropdown-menu" id="differencePeriodDropdown">
+                            <button type="button" class="dropdown-item" data-value="today">Сегодня</button>
+                            <button type="button" class="dropdown-item" data-value="week">Неделя</button>
+                            <button type="button" class="dropdown-item" data-value="month">Месяц</button>
+                            <button type="button" class="dropdown-item" data-value="quarter">Квартал</button>
+                            <button type="button" class="dropdown-item" data-value="all">Все время</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label" id="differenceLabel">Разница</div>
+                            <div class="stat-value" id="statDifference">0 ₽</div>
+                            <div class="stat-subtext" id="differenceSubtext">ЮКасса vs Налоговая</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters-bar mb-4" id="filtersSection">
+            <div class="filters-bar-inner">
+                <div class="filters-grid row g-2 g-md-3">
+                    <div class="col-12 mb-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <label class="form-label filters-label mb-0" for="searchAllFilter">Поиск по чекам</label>
+                            <div class="form-check form-check-inline mb-0 ms-auto">
+                                <input type="checkbox" class="form-check-input" id="searchEntireDb" onchange="applyFiltersAutoClient()">
+                                <label class="form-check-label small" for="searchEntireDb">Не учитывать фильтры</label>
+                            </div>
+                        </div>
+                        <div class="input-group input-group-sm mt-1">
+                            <input type="text" class="form-control form-control-sm" id="searchAllFilter" placeholder="Услуга, описание, ID платежа…" autocomplete="off" oninput="applyFiltersAutoClient()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearSearchAllFilter()" title="Очистить" aria-label="Очистить поиск"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="dateFrom">Дата с</label>
+                        <input type="date" class="form-control form-control-sm" id="dateFrom" onchange="applyFiltersAutoWithReload()">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="dateTo">Дата по</label>
+                        <input type="date" class="form-control form-control-sm" id="dateTo" onchange="applyFiltersAutoWithReload()">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="statusFilter">Статус чека</label>
+                        <select class="form-select form-select-sm filters-select" id="statusFilter" onchange="applyFiltersAutoClient()">
+                            <option value="all">Все</option>
+                            <option value="pending">Ожидают</option>
+                            <option value="sent">Отправлены</option>
+                            <option value="error">Ошибка</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="serviceNameFilter">Услуга</label>
+                        <div class="input-group input-group-sm filters-input-group">
+                            <input type="text" class="form-control form-control-sm" id="serviceNameFilter" placeholder="Выбрать…" readonly onclick="showServiceNameFilterModal()">
+                            <button type="button" class="btn btn-outline-danger hidden" onclick="clearServiceNameFilter()" id="clearServiceFilterBtn" title="Очистить" aria-label="Очистить услугу"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="showServiceNameFilterModal()" title="Выбрать" aria-label="Выбрать услугу"><i class="bi bi-search" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="priceFrom">Цена от (₽)</label>
+                        <input type="number" class="form-control form-control-sm" id="priceFrom" min="0" step="0.01" placeholder="0" oninput="applyFiltersAutoClient()">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="priceTo">Цена до (₽)</label>
+                        <input type="number" class="form-control form-control-sm" id="priceTo" min="0" step="0.01" placeholder="∞" oninput="applyFiltersAutoClient()">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="groupingType">Группировка</label>
+                        <select class="form-select form-select-sm filters-select" id="groupingType" onchange="applyGroupingChange()">
+                            <option value="day">По дням</option>
+                            <option value="week">По неделям</option>
+                            <option value="month">По месяцам</option>
+                            <option value="quarter">По кварталам</option>
+                            <option value="year">По годам</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label filters-label" for="paymentsPerGroup">В группе</label>
+                        <select class="form-select form-select-sm filters-select" id="paymentsPerGroup" onchange="applyGroupingChange()">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="200">200</option>
+                            <option value="9999">Все</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-bar-footer">
+                    <button type="button" class="btn btn-sm btn-filters-action" onclick="resetFilters()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Сбросить
+                    </button>
+                    <div class="form-check filters-save-check mb-0">
+                        <input type="checkbox" class="form-check-input" id="saveFilters" onchange="toggleSaveFilters()">
+                        <label class="form-check-label" for="saveFilters">Сохранять фильтры в поиске и в карточках</label>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-filters-action btn-filters-hide ms-auto" onclick="toggleFilters()" id="hideFiltersBtn">
+                        <i class="bi bi-chevron-up me-1"></i>Скрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination Top -->
+        <div id="paginationTop" class="pagination-wrapper pagination-bar hidden mb-3">
+            <div class="pagination-controls">
+                <button type="button" class="btn btn-pagination-nav" onclick="goToFirstPage()" id="paginationFirstTop" title="Первая" aria-label="Первая страница">
+                    <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToPrevPage()" id="paginationPrevTop" title="Назад" aria-label="Предыдущая страница">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <ul class="pagination pagination-sm mb-0" id="paginationNumbersTop">
+                    <!-- Generated by JS -->
+                </ul>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToNextPage()" id="paginationNextTop" title="Вперед" aria-label="Следующая страница">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToLastPage()" id="paginationLastTop" title="Последняя" aria-label="Последняя страница">
+                    <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="pagination-info">
+                <span class="pagination-info-text" id="paginationInfoTop"></span>
+                <div class="groups-per-page-dropdown" style="position: relative;">
+                    <input type="hidden" id="groupsPerPage" value="10">
+                    <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleGroupsPerPageDropdown('top')" title="Групп на странице" id="groupsPerPageBtnTop">
+                        <span class="groups-per-page-btn-text">10 групп</span>
+                        <i class="bi bi-chevron-down stat-period-chevron"></i>
+                    </button>
+                    <div class="stat-period-menu groups-per-page-menu" id="groupsPerPageDropdownTop">
+                        <button type="button" class="dropdown-item" data-value="5">5 групп</button>
+                        <button type="button" class="dropdown-item" data-value="10">10 групп</button>
+                        <button type="button" class="dropdown-item" data-value="20">20 групп</button>
+                        <button type="button" class="dropdown-item" data-value="50">50 групп</button>
+                        <button type="button" class="dropdown-item" data-value="100">100 групп</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payments Container -->
+        <div id="paymentsContainer">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination Bottom -->
+        <div id="paginationBottom" class="pagination-wrapper pagination-bar hidden mt-3">
+            <div class="pagination-controls">
+                <button type="button" class="btn btn-pagination-nav" onclick="goToFirstPage()" id="paginationFirstBottom" title="Первая" aria-label="Первая страница">
+                    <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToPrevPage()" id="paginationPrevBottom" title="Назад" aria-label="Предыдущая страница">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <ul class="pagination pagination-sm mb-0" id="paginationNumbersBottom">
+                    <!-- Generated by JS -->
+                </ul>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToNextPage()" id="paginationNextBottom" title="Вперед" aria-label="Следующая страница">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-pagination-nav" onclick="goToLastPage()" id="paginationLastBottom" title="Последняя" aria-label="Последняя страница">
+                    <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="pagination-info">
+                <span class="pagination-info-text" id="paginationInfoBottom"></span>
+                <div class="groups-per-page-dropdown" style="position: relative;">
+                    <input type="hidden" id="groupsPerPageBottom" value="10">
+                    <button type="button" class="btn btn-outline-secondary btn-sm stat-period-btn" onclick="toggleGroupsPerPageDropdown('bottom')" title="Групп на странице" id="groupsPerPageBtnBottom">
+                        <span class="groups-per-page-btn-text">10 групп</span>
+                        <i class="bi bi-chevron-down stat-period-chevron"></i>
+                    </button>
+                    <div class="stat-period-menu groups-per-page-menu open-up" id="groupsPerPageDropdownBottom">
+                        <button type="button" class="dropdown-item" data-value="5">5 групп</button>
+                        <button type="button" class="dropdown-item" data-value="10">10 групп</button>
+                        <button type="button" class="dropdown-item" data-value="20">20 групп</button>
+                        <button type="button" class="dropdown-item" data-value="50">50 групп</button>
+                        <button type="button" class="dropdown-item" data-value="100">100 групп</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-gear me-2"></i>
+                        Настройки
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('settingsModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Auth Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            Авторизация
+                        </h6>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="authEnabledSetting" onchange="toggleAuthEnabledSetting()">
+                            <label class="form-check-label" for="authEnabledSetting">
+                                Включить авторизацию
+                            </label>
+                        </div>
+                        <div id="authSettingsBlock" class="hidden">
+                            <div class="mb-3">
+                                <label class="form-label small">Текущий логин</label>
+                                <input type="text" class="form-control form-control-sm" id="authCurrentLoginDisplay" readonly>
+                            </div>
+                            <hr class="my-3">
+                            <p class="small text-muted mb-2">Изменить логин и пароль:</p>
+                            <div class="mb-2">
+                                <label class="form-label small">Текущий пароль</label>
+                                <input type="password" class="form-control form-control-sm" id="authCurrentPassword" placeholder="Введите текущий пароль" autocomplete="off">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Новый логин</label>
+                                <input type="text" class="form-control form-control-sm" id="authNewLogin" placeholder="Оставьте пустым, чтобы не менять" autocomplete="off">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Новый пароль</label>
+                                <input type="password" class="form-control form-control-sm" id="authNewPassword" placeholder="Оставьте пустым, чтобы не менять" autocomplete="new-password">
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="resetAuthToDefaults()">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Сбросить на стандартные
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-auto" onclick="logoutFromSettings()">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Выйти
+                                </button>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3 small mb-0">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <strong>Подсказка:</strong> Включите авторизацию, если сайт доступен по сети (LAN/интернет).
+                            Для локального использования (только на этом компьютере) можно отключить.
+                            Логин и пароль по умолчанию: <strong>admin</strong> / <strong>admin</strong> — обязательно смените их при включении.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-wifi me-2"></i>
+                            ЮKassa и налоговая служба
+                        </h6>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="checkConnection()" id="checkBtn">
+                            <i class="bi bi-wifi me-1"></i>
+                            Проверить доступность
+                        </button>
+                        <div id="checkConnectionResult" class="check-connection-result mt-2" aria-live="polite"></div>
+                    </div>
+                    <!-- YooKassa Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-credit-card me-2"></i>
+                            ЮKassa
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label small">Shop ID</label>
+                            <input type="text" class="form-control" id="setYookassaShopId">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Secret Key</label>
+                            <input type="password" class="form-control" id="setYookassaSecretKey" placeholder="Оставьте пустым, чтобы не менять">
+                        </div>
+                        
+                        <div class="border-top pt-3 mt-3">
+                            <button class="btn btn-primary w-100 mb-2" onclick="syncYookassaFromSettings()" id="syncYookassaBtnSettings">
+                                <i class="bi bi-arrow-repeat me-2"></i>
+                                Синхронизировать с ЮKassa
+                            </button>
+                            <small class="text-muted d-block">
+                                Последняя синхронизация: <span id="lastSyncTimeSettings">не выполнялась</span>
+                            </small>
+                        </div>
+                        
+                        <div class="form-check mt-3">
+                            <input type="checkbox" class="form-check-input" id="autoSyncEnabledSettings" onchange="toggleAutoSyncInSettings()">
+                            <label class="form-check-label" for="autoSyncEnabledSettings">
+                                Автоматическая синхронизация
+                            </label>
+                        </div>
+                        
+                        <div class="mt-3 hidden" id="autoSyncIntervalSettings">
+                            <label class="form-label small">Интервал автосинхронизации</label>
+                            <select class="form-select" id="autoSyncIntervalSelect" onchange="updateAutoSyncIntervalFromSettings()">
+                                <option value="5">5 секунд</option>
+                                <option value="10">10 секунд</option>
+                                <option value="30" selected>30 секунд</option>
+                                <option value="60">1 минута</option>
+                                <option value="120">2 минуты</option>
+                                <option value="300">5 минут</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Tax Service Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-bank me-2"></i>
+                            Налоговая
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label small">ИНН (логин)</label>
+                            <input type="text" class="form-control" id="setNalogLogin">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Пароль</label>
+                            <input type="password" class="form-control" id="setNalogPassword" placeholder="Оставьте пустым, чтобы не менять">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Максимальное количество дней назад для отправки чеков</label>
+                            <input type="number" class="form-control" id="setMaxDaysBack" min="1" max="365" placeholder="Например: 30">
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                По закону чек нужно выбить до 9 числа следующего месяца. Рекомендуется: 30-60 дней.
+                            </div>
+                        </div>
+                        <button class="btn btn-success w-100" onclick="closeModal('settingsModal'); syncWithTaxService();">
+                            <i class="bi bi-arrow-repeat me-2"></i>
+                            Синхронизация с налоговой
+                        </button>
+                        <small class="text-muted d-block mt-2">
+                            Загрузить все чеки из налоговой для проверки дубликатов
+                        </small>
+                    </div>
+                    
+                    <!-- Cards Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>
+                            Карточки
+                        </h6>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="cardsEnabled" onchange="toggleCardsEnabled()">
+                            <label class="form-check-label" for="cardsEnabled">Включить карточки</label>
+                        </div>
+                        <div id="cardsSettingsList" class="display-fields-list">
+                            <!-- Generated by JS -->
+                        </div>
+                        <div class="alert alert-info mt-3 small">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            Включите/отключите карточки и измените их порядок
+                        </div>
+                    </div>
+                    
+                    <!-- Display Fields Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-eye me-2"></i>
+                            Отображение платежей
+                        </h6>
+                        <p class="small text-muted">
+                            Выберите поля и настройте порядок их отображения
+                        </p>
+                        <div id="displayFieldsList" class="display-fields-list">
+                            <!-- Generated by JS -->
+                        </div>
+                        <div class="alert alert-info mt-3 small">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <strong>Советы:</strong>
+                            Используйте кнопки для изменения порядка. Отключите лишние поля для компактности.
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="danger-zone mt-4">
+                        <h6 class="danger-zone-title">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Опасная зона
+                        </h6>
+                        <p class="danger-zone-desc">
+                            Эти действия необратимы. Удалённые данные невозможно восстановить.
+                        </p>
+
+                        <div class="danger-zone-item">
+                            <div class="danger-zone-item-info">
+                                <strong>Очистить базу данных</strong>
+                                <span>Удаляет все чеки, кэш налоговой, наименования услуг и внутренние настройки приложения. Данные подключений (ЮКасса, налоговая) останутся.</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm danger-zone-btn" onclick="dangerClearDatabase()">
+                                <i class="bi bi-trash3 me-1"></i>Очистить БД
+                            </button>
+                        </div>
+
+                        <div class="danger-zone-item">
+                            <div class="danger-zone-item-info">
+                                <strong>Очистить данные подключений</strong>
+                                <span>Удаляет логин/пароль ЮКассы и налоговой. База данных чеков и настройки интерфейса останутся.</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm danger-zone-btn" onclick="dangerClearConnections()">
+                                <i class="bi bi-plug me-1"></i>Очистить подключения
+                            </button>
+                        </div>
+
+                        <div class="danger-zone-item">
+                            <div class="danger-zone-item-info">
+                                <strong>Полный сброс</strong>
+                                <span>Удаляет всё: базу данных, подключения, авторизацию, настройки интерфейса, фильтры, таймеры. Приложение вернётся к состоянию первого запуска.</span>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm danger-zone-btn" onclick="dangerResetAll()">
+                                <i class="bi bi-radioactive me-1"></i>Сбросить всё
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('settingsModal')">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                        <i class="bi bi-save me-2"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Send Modal -->
+    <div class="modal fade" id="autoSendModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-send-check me-2"></i>
+                        Авто отправка
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('autoSendModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2">
+                        Новые платежи с ЮКассы будут автоматически отправляться в налоговую после каждой синхронизации.
+                    </p>
+                    <p class="small mb-3" id="autoSendSyncStatusText"></p>
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" id="autoSendModalAutoSyncCheck" onchange="toggleAutoSyncFromAutoSendModal()">
+                        <label class="form-check-label small" for="autoSendModalAutoSyncCheck">Включить автосинхронизацию с ЮКассой</label>
+                    </div>
+                    <div id="autoSendModalAutoSyncInterval" class="mb-3 hidden">
+                        <label class="form-label small mb-1">Интервал</label>
+                        <select class="form-select form-select-sm" id="autoSendModalAutoSyncSelect" onchange="changeAutoSyncIntervalFromAutoSendModal()">
+                            <option value="5">5 секунд</option>
+                            <option value="10">10 секунд</option>
+                            <option value="30">30 секунд</option>
+                            <option value="60">1 минута</option>
+                            <option value="120">2 минуты</option>
+                            <option value="300">5 минут</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="autoSendEnabled" onchange="toggleAutoSendOptionsVisibility()">
+                        <label class="form-check-label" for="autoSendEnabled">Включить авто-отправку новых платежей</label>
+                    </div>
+                    <div id="autoSendOptions" class="auto-send-options">
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="autoSendAllUnsent">
+                            <label class="form-check-label small" for="autoSendAllUnsent">Отправить все неотправленные (в т.ч. старые). Поставьте галочку, чтобы при синхронизации отправлялись все чеки, которые ещё не в налоговой.</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Как отправлять</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <label class="form-check form-check-inline">
+                                    <input type="radio" class="form-check-input" name="autoSendDataMode" id="autoSendUseYookassaData" value="yookassa" onchange="toggleAutoSendRandomSection()">
+                                    <span class="form-check-label">Данные как в ЮКасса</span>
+                                </label>
+                                <label class="form-check form-check-inline">
+                                    <input type="radio" class="form-check-input" name="autoSendDataMode" id="autoSendUseRandom" value="random" onchange="toggleAutoSendRandomSection()">
+                                    <span class="form-check-label">Рандом по настройкам</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="autoSendRandomSection" class="auto-send-random-section mb-3 hidden">
+                            <div class="bulk-random-row d-flex flex-wrap gap-3 mb-2">
+                                <div class="bulk-random-item">
+                                    <div class="form-check mb-1">
+                                        <input type="checkbox" class="form-check-input" id="autoSendEnableRandomServiceName" onchange="toggleAutoSendRandomServiceSection()">
+                                        <label class="form-check-label small" for="autoSendEnableRandomServiceName">Рандом услуги</label>
+                                    </div>
+                                    <div id="autoSendRandomServiceNameSection" class="bulk-random-sub mt-2 hidden">
+                                        <div class="checkbox-list bulk-checkbox-list auto-send-services-list" id="autoSendRandomServiceNamesList"></div>
+                                    </div>
+                                </div>
+                                <div class="bulk-random-item">
+                                    <div class="form-check mb-1">
+                                        <input type="checkbox" class="form-check-input" id="autoSendEnableRandomDate" onchange="toggleAutoSendRandomDateSection()">
+                                        <label class="form-check-label small" for="autoSendEnableRandomDate">Рандом даты</label>
+                                    </div>
+                                    <div id="autoSendRandomDateSection" class="bulk-random-sub mt-2 hidden">
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <div>
+                                                <label class="form-label small mb-0">От</label>
+                                                <input type="date" class="form-control form-control-sm" id="autoSendRandomDateFrom">
+                                            </div>
+                                            <div>
+                                                <label class="form-label small mb-0">До</label>
+                                                <input type="date" class="form-control form-control-sm" id="autoSendRandomDateTo">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bulk-random-item">
+                                    <div class="form-check mb-1">
+                                        <input type="checkbox" class="form-check-input" id="autoSendEnableRandomPrice" onchange="toggleAutoSendRandomPriceSection()">
+                                        <label class="form-check-label small" for="autoSendEnableRandomPrice">Рандом цены</label>
+                                    </div>
+                                    <div id="autoSendRandomPriceSection" class="bulk-random-sub mt-2 hidden">
+                                        <div class="d-flex gap-2">
+                                            <div>
+                                                <label class="form-label small mb-0">От ₽</label>
+                                                <input type="number" class="form-control form-control-sm" id="autoSendRandomPriceFrom" min="0" step="0.01" placeholder="0">
+                                            </div>
+                                            <div>
+                                                <label class="form-label small mb-0">До ₽</label>
+                                                <input type="number" class="form-control form-control-sm" id="autoSendRandomPriceTo" min="0" step="0.01" placeholder="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('autoSendModal')">Закрыть</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm hidden" id="autoSendCancelBtn" onclick="cancelAutoSend(); closeModal('autoSendModal');" title="Выключить авто-отправку">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Выключить авто-отправку
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveAutoSendSettingsFromModal()">
+                        <i class="bi bi-check2 me-2"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Send Receipt Modal -->
+    <div class="modal fade" id="sendReceiptModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-send me-2"></i>
+                        Отправка чека
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('sendReceiptModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="sendReceiptPaymentInfo" class="alert alert-info small"></div>
+                    
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <input type="radio" class="btn-check" name="dataMode" id="btnYookassaData" checked onclick="setSendUseYookassaData(true)">
+                        <label class="btn btn-outline-primary" for="btnYookassaData">
+                            Данные как в ЮКасса
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="dataMode" id="btnCustomData" onclick="setSendUseYookassaData(false)">
+                        <label class="btn btn-outline-primary" for="btnCustomData">
+                            Свои данные платежа
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small">
+                            Наименование услуги
+                            <span id="sendServiceNameCounter" class="text-muted">(0/250)</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="sendServiceNameInput" maxlength="250" placeholder="Введите наименование услуги" oninput="updateServiceNameCounter()" disabled>
+                            <button type="button" class="btn btn-outline-secondary" id="btnShowServices" onclick="toggleServiceDropdown()" disabled>
+                                Выбрать услугу
+                            </button>
+                        </div>
+                        <div class="service-dropdown" id="serviceDropdown">
+                            <!-- Loaded dynamically -->
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Можете отредактировать услугу из ЮКассы или выбрать из сохранённых
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3 hidden" id="sendUseOnlyThisPaymentContainer">
+                        <input type="checkbox" class="form-check-input" id="sendUseOnlyThisPayment" disabled>
+                        <label class="form-check-label small" for="sendUseOnlyThisPayment">
+                            Использовать только в этом платеже
+                        </label>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Если снять галочку, услуга будет сохранена в БД
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="sendRandomServiceName" onchange="toggleSendRandomService()" disabled>
+                        <label class="form-check-label small" for="sendRandomServiceName">
+                            Рандомное наименование
+                        </label>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Выбирается случайная услуга из сохранённых в БД
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small">Дата и время продажи</label>
+                        <input type="datetime-local" class="form-control" id="sendSaleDate" step="1" onchange="checkReceiptDateLegal()" disabled>
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Чек нужно выбить до 9 числа следующего месяца за услугу из прошлого месяца.
+                            <span id="dateWarning" class="hidden fw-bold"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small">Цена (₽)</label>
+                        <input type="number" class="form-control" id="sendPrice" min="0" step="0.01" placeholder="Оставьте пустым для цены платежа" disabled>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('sendReceiptModal')">Отмена</button>
+                    <button type="button" class="btn btn-success" onclick="confirmSendReceipt()">
+                        <i class="bi bi-send me-2"></i>
+                        Отправить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Service Name Modal -->
+    <div class="modal fade" id="addServiceNameModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Добавить наименование
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('addServiceNameModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Наименование услуги</label>
+                        <input type="text" class="form-control" id="newServiceNameInput" placeholder="Например: Подписка на VPN">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addServiceNameModal')">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="addServiceName()">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Добавить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Service Name Filter Modal -->
+    <div class="modal fade" id="serviceNameFilterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-search me-2"></i>
+                        Выбор наименования услуги
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('serviceNameFilterModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Выберите одно или несколько наименований для фильтрации платежей
+                    </p>
+                    <div class="checkbox-list" id="serviceNameFilterList">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('serviceNameFilterModal')">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="applyServiceNameFilter()">
+                        <i class="bi bi-check-lg me-2"></i>
+                        Применить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cancel Receipt Modal -->
+    <div class="modal fade" id="cancelReceiptModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Аннулирование чека
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('cancelReceiptModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Выберите причину аннулирования:</p>
+                    <div class="form-check mb-3">
+                        <input type="radio" class="form-check-input" name="cancelReason" value="CANCEL" id="cancelReasonError" checked>
+                        <label class="form-check-label" for="cancelReasonError">
+                            <strong>Чек сформирован ошибочно</strong><br>
+                            <small class="text-muted">Неправильная сумма, дата и т.д.</small>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="radio" class="form-check-input" name="cancelReason" value="REFUND" id="cancelReasonRefund">
+                        <label class="form-check-label" for="cancelReasonRefund">
+                            <strong>Возврат средств</strong><br>
+                            <small class="text-muted">Клиент вернул оплату</small>
+                        </label>
+                    </div>
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Аннулирование чека возможно только при наличии законных оснований!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('cancelReceiptModal')">Отмена</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmCancelReceipt()">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Аннулировать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Services Management Modal -->
+    <div class="modal fade" id="servicesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-folder-plus me-2"></i>
+                        Управление услугами
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeModal('servicesModal')"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label">Добавить новую услугу</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="servicesModalInput" placeholder="Например: Ремонт ноутбука" onkeypress="if(event.key==='Enter') addServiceFromModal()">
+                            <button type="button" class="btn btn-primary" onclick="addServiceFromModal()">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Добавить
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label text-muted small">Существующие услуги</label>
+                        <div class="services-modal-list" id="servicesModalList">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger btn-sm me-auto" onclick="clearAllServiceNames()" id="servicesModalClearBtn">
+                        <i class="bi bi-trash me-1"></i>Очистить список услуг
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('servicesModal')">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sync Modal -->
+    <div class="modal fade" id="syncModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        Синхронизация с налоговой
+                    </h5>
+                    <button type="button" class="btn-close" onclick="closeSyncModal()" id="syncModalClose"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Initial State -->
+                    <div id="syncInitialState">
+                        <p class="mb-2">Загрузить все чеки из налоговой, чтобы не отправлять дубликаты?</p>
+                        <ul class="small text-muted">
+                            <li>Это может занять некоторое время</li>
+                            <li>Платежи с чеками будут автоматически отмечены</li>
+                            <li>В дальнейшем проверка чеков выполняется автоматически</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Progress State -->
+                    <div id="syncProgressState" class="hidden">
+                        <div class="text-center mb-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Синхронизация...</span>
+                            </div>
+                            <p class="mt-3 fw-medium" id="syncStatusText">Подключение к налоговой...</p>
+                        </div>
+                        
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="syncProgressFill" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-3">
+                            <span id="syncProgressText">0%</span>
+                            <span id="syncProgressCount">0 / 0</span>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">Загружено чеков:</span>
+                                    <strong id="syncLoadedCount">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">Обновлено платежей:</span>
+                                    <strong id="syncUpdatedCount">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted">Совпадений найдено:</span>
+                                    <strong id="syncMatchedCount">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Result State -->
+                    <div id="syncResultState" class="hidden">
+                        <div class="text-center mb-3">
+                            <span id="syncResultIcon"></span>
+                            <h5 class="mt-2" id="syncResultTitle">Синхронизация завершена!</h5>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" id="syncResultDetails">
+                                <!-- Filled dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeSyncModal()" id="syncCancelBtn">Отмена</button>
+                    <button type="button" class="btn btn-success" onclick="confirmSync()" id="syncStartBtn">
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        Синхронизировать
+                    </button>
+                    <button type="button" class="btn btn-primary hidden" onclick="closeSyncModal()" id="syncCloseBtn">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== Floating Bulk Actions Bar ===== -->
+    <div class="bulk-actions-bar" id="bulkActions" role="alert" aria-live="polite">
+
+        <!-- Раскрывающаяся панель рандомных настроек -->
+        <div class="bulk-actions-expand" id="bulkRandomExpand">
+            <div class="bulk-actions-expand-inner">
+                <div class="bulk-random-row">
+                    <!-- Рандом услуги -->
+                    <div class="bulk-random-item">
+                        <div class="form-check form-check-inline mb-0">
+                            <input type="checkbox" class="form-check-input" id="enableRandomServiceName" onchange="toggleRandomServiceNameSection()">
+                            <label class="form-check-label small" for="enableRandomServiceName">Рандом услуги</label>
+                        </div>
+                        <div id="randomServiceNameSection" class="bulk-random-sub bulk-random-sub-services hidden mt-2">
+                            <div class="checkbox-list bulk-checkbox-list auto-send-services-list" id="randomServiceNamesList"></div>
+                        </div>
+                    </div>
+                    <!-- Рандом даты -->
+                    <div class="bulk-random-item">
+                        <div class="form-check form-check-inline mb-0">
+                            <input type="checkbox" class="form-check-input" id="enableRandomDate" onchange="toggleRandomDateSection()">
+                            <label class="form-check-label small" for="enableRandomDate">Рандом даты</label>
+                        </div>
+                        <div id="randomDateSection" class="bulk-random-sub bulk-random-sub-dates hidden mt-2">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <div>
+                                    <label class="form-label small mb-0">От</label>
+                                    <input type="date" class="form-control form-control-sm" id="randomDateFrom">
+                                </div>
+                                <div>
+                                    <label class="form-label small mb-0">До</label>
+                                    <input type="date" class="form-control form-control-sm" id="randomDateTo">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Рандом цены -->
+                    <div class="bulk-random-item">
+                        <div class="form-check form-check-inline mb-0">
+                            <input type="checkbox" class="form-check-input" id="enableRandomPrice" onchange="toggleRandomPriceSection()">
+                            <label class="form-check-label small" for="enableRandomPrice">Рандом цены</label>
+                        </div>
+                        <div id="randomPriceSection" class="bulk-random-sub bulk-random-sub-prices hidden mt-2">
+                            <div class="d-flex gap-2">
+                                <div>
+                                    <label class="form-label small mb-0">От ₽</label>
+                                    <input type="number" class="form-control form-control-sm" id="randomPriceFrom" min="0" step="0.01" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="form-label small mb-0">До ₽</label>
+                                    <input type="number" class="form-control form-control-sm" id="randomPriceTo" min="0" step="0.01" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary bulk-random-done" onclick="collapseRandomPanel(true)">
+                    <i class="bi bi-check2"></i> Готово
+                </button>
+            </div>
+        </div>
+
+        <!-- Основная панель: информация + опции + кнопки -->
+        <div class="bulk-actions-bar-inner">
+            <div class="bulk-actions-info">
+                <span class="bulk-actions-count">
+                    <i class="bi bi-check2-square"></i>
+                    <span id="selectedCount">0</span>
+                </span>
+                <span class="bulk-actions-label" id="selectedLabel">выбрано</span>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm bulk-btn-clear" onclick="clearSelection()" aria-label="Снять выделение">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="bulk-actions-options bulk-actions-send-options" id="bulkActionsSendOptions">
+                <label class="bulk-option-chip">
+                    <input type="checkbox" class="form-check-input" id="bulkUseYookassaData" onchange="toggleBulkUseYookassaData()" checked>
+                    <span>Данные как в ЮКасса</span>
+                </label>
+                <label class="bulk-option-chip">
+                    <input type="checkbox" class="form-check-input" id="randomSettingsCheck" onchange="toggleRandomSettings()">
+                    <span>Рандом</span>
+                </label>
+            </div>
+            <div class="bulk-actions-buttons">
+                <div class="bulk-actions-send-buttons" id="bulkActionsSendButtons">
+                    <button type="button" class="btn btn-success btn-sm bulk-btn-send" id="bulkSendBtn" onclick="sendSelectedReceipts()">
+                        <i class="bi bi-send"></i> Отправить
+                    </button>
+                </div>
+                <div class="bulk-actions-cancel-buttons hidden" id="bulkActionsCancelButtons">
+                    <button type="button" class="btn btn-danger btn-sm bulk-btn-cancel" id="bulkCancelBtn" onclick="cancelSelectedReceipts()">
+                        <i class="bi bi-x-circle"></i> Аннулировать
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Прогресс-бар массовой операции -->
+        <div class="bulk-progress-wrap hidden" id="bulkProgressWrap">
+            <div class="bulk-progress-header">
+                <span class="bulk-progress-label" id="bulkProgressLabel">Отправка чеков...</span>
+                <span class="bulk-progress-count" id="bulkProgressCount">0 из 0</span>
+            </div>
+            <div class="progress bulk-progress-bar" style="height: 8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" id="bulkProgressBar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="bulk-progress-detail" id="bulkProgressDetail">Успешно: 0, ошибок: 0</div>
+            <p class="bulk-progress-warning" aria-live="polite">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                Не перезагружайте страницу и не закрывайте браузер до завершения операции.
+            </p>
+            <div class="bulk-progress-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm bulk-btn-abort" id="bulkProgressAbortBtn" onclick="abortBulkOperation()">
+                    <i class="bi bi-stop-fill"></i> Отменить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Bootstrap 5.3 JS (локально) -->
+    <script src="/js/vendor/bootstrap.bundle.min.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="/js/state.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/modals.js"></script>
+    <script src="/js/stats.js"></script>
+    <script src="/js/filters.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/services.js"></script>
+    <script src="/js/payments.js"></script>
+    <script src="/js/receipts.js"></script>
+    <script src="/js/sync.js"></script>
+    <script src="/js/settings.js"></script>
+    <script src="/js/init.js"></script>
+</body>
+</html>
